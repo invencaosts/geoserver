@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: geo
+      POSTGRES_PASSWORD: geo_dev_pw
+      POSTGRES_DB: geo_grilagem
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geo -d geo_grilagem"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - ./data/redis:/data
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: geo_admin
+      MINIO_ROOT_PASSWORD: geo_dev_pw_123
+    ports:
+      - "9004:9000"
+      - "9005:9001"
+    volumes:
+      - ./data/minio:/data
+
+  martin:
+    image: ghcr.io/maplibre/martin:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://geo:geo_dev_pw@postgres:5432/geo_grilagem
+      MARTIN_LISTEN_ADDRESSES: 0.0.0.0:3000
+    ports:
+      - "3010:3000"

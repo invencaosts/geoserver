@@ -1,0 +1,183 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+enum RoleName {
+  admin
+  verificador
+  contribuidor
+  leitor
+}
+
+enum UserStatus {
+  ativo
+  inativo
+}
+
+model User {
+  id         String     @id @default(cuid())
+  nome       String
+  email      String     @unique
+  senhaHash  String
+  role       RoleName   @default(leitor)
+  status     UserStatus @default(ativo)
+  avatarUrl  String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  casesCreated       Case[]              @relation("CaseCreatedBy")
+  statusChanges      CaseStatusHistory[] @relation("StatusChangedBy")
+
+  @@map("users")
+}
+
+enum LayerType {
+  WMS
+  WFS
+  WCS
+  Vector
+  Raster
+}
+
+enum LayerCategory {
+  base
+  overlay
+  analysis
+}
+
+model Layer {
+  id           String        @id @default(cuid())
+  nome         String
+  tipo         LayerType
+  categoria    LayerCategory @default(overlay)
+  url          String?
+  fonte        String
+  descricao    String?
+  projecao     String        @default("EPSG:4326")
+  visivel      Boolean       @default(true)
+  opacidade    Int           @default(100)
+  tileSourceId String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("layers")
+}
+
+enum DatasetFormat {
+  Shapefile
+  GeoJSON
+  KML
+  CSV
+}
+
+enum DatasetGeomType {
+  Point
+  Polygon
+  Line
+}
+
+enum DatasetStatus {
+  processing
+  active
+  error
+}
+
+model Dataset {
+  id               String          @id @default(cuid())
+  nome             String
+  formato          DatasetFormat
+  tipoGeometria    DatasetGeomType
+  status           DatasetStatus   @default(processing)
+  registros        Int             @default(0)
+  projecaoOriginal String?
+  storageKey       String?
+  erro             String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  features Feature[]
+
+  @@map("datasets")
+}
+
+model Feature {
+  id         String                @id @default(cuid())
+  datasetId  String
+  dataset    Dataset               @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  geom       Unsupported("geometry(Geometry,4326)")
+  properties Json                  @default("{}")
+  createdAt  DateTime              @default(now())
+
+  @@index([datasetId])
+  @@map("features")
+}
+
+enum CaseTipo {
+  invasao_propriedade
+  ocupacao_irregular
+  desmatamento_ilegal
+  conflito_agrario
+}
+
+enum CasePrioridade {
+  baixa
+  media
+  alta
+  critica
+}
+
+enum CaseStatus {
+  pendente
+  em_verificacao
+  validado
+  rejeitado
+}
+
+model Case {
+  id          String         @id @default(cuid())
+  nome        String
+  tipo        CaseTipo
+  municipio   String
+  estado      String
+  descricao   String?
+  lat         Float?
+  lng         Float?
+  fonteDados  String?
+  denunciante String?
+  prioridade  CasePrioridade @default(media)
+  status      CaseStatus     @default(pendente)
+
+  createdById String
+  createdBy   User   @relation("CaseCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  statusHistory CaseStatusHistory[]
+
+  @@index([status])
+  @@index([municipio])
+  @@map("cases")
+}
+
+model CaseStatusHistory {
+  id          String      @id @default(cuid())
+  caseId      String
+  case        Case        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fromStatus  CaseStatus?
+  toStatus    CaseStatus
+  changedById String
+  changedBy   User        @relation("StatusChangedBy", fields: [changedById], references: [id])
+  note        String?
+  createdAt   DateTime    @default(now())
+
+  @@index([caseId])
+  @@map("case_status_history")
+}
