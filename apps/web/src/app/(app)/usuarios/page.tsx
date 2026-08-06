@@ -5,9 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectField } from "@/components/ui/select-field";
 import { Switch } from "@/components/ui/switch";
-import { useUpdateUser, useUsers } from "@/lib/queries/users";
+import { Button } from "@/components/ui/button";
+import { useApproveRole, useUpdateUser, useUsers } from "@/lib/queries/users";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ const ROLE_TONE: Record<RoleName, string> = {
 export default function UsuariosPage() {
   const { data: users, isLoading } = useUsers();
   const updateUser = useUpdateUser();
+  const approveRole = useApproveRole();
   const currentUser = useAuthStore((s) => s.user);
 
   return (
@@ -49,22 +51,44 @@ export default function UsuariosPage() {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{u.nome}</p>
                       {isSelf && <Badge variant="secondary" className="text-[10px] font-normal">você</Badge>}
+                      {u.roleApprovalStatus === "pendente" && (
+                        <Badge className="bg-amber-500/15 text-[10px] font-normal text-amber-600">
+                          solicitou {ROLE_LABEL[u.requestedRole]}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Select
+                  {u.roleApprovalStatus === "pendente" && !isSelf && (
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={approveRole.isPending}
+                        onClick={() => approveRole.mutate({ id: u.id, decision: "aprovado" })}
+                      >
+                        Aprovar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={approveRole.isPending}
+                        onClick={() => approveRole.mutate({ id: u.id, decision: "rejeitado" })}
+                      >
+                        Rejeitar
+                      </Button>
+                    </div>
+                  )}
+                  <SelectField
+                    className="w-[168px] text-xs"
                     value={u.role}
                     disabled={isSelf}
-                    onValueChange={(role) => updateUser.mutate({ id: u.id, data: { role: role as RoleName } })}
-                  >
-                    <SelectTrigger className="h-8 w-[168px] text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(ROLE_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                    onValueChange={(role) => updateUser.mutate({ id: u.id, data: { role } })}
+                    options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value: value as RoleName, label }))}
+                  />
 
                   <div className="flex items-center gap-2 rounded-lg border border-border/60 px-2.5 py-1.5">
                     <Switch

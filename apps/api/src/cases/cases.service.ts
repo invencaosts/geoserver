@@ -1,8 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { randomUUID } from "crypto";
 import type { AuthUser, CaseStatus } from "@geo/shared";
+import { CASE_TIPO_LABEL } from "@geo/shared";
 import { PrismaService } from "../prisma/prisma.service";
+import { MinioService } from "../storage/minio.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { CreateCaseDto } from "./dto/create-case.dto";
 import { UpdateCaseStatusDto } from "./dto/update-case-status.dto";
+
+const ANEXO_EXTENSOES = ["pdf", "kmz"];
 
 const ALLOWED_TRANSITIONS: Record<CaseStatus, CaseStatus[]> = {
   pendente: ["em_verificacao", "rejeitado"],
@@ -13,7 +19,11 @@ const ALLOWED_TRANSITIONS: Record<CaseStatus, CaseStatus[]> = {
 
 @Injectable()
 export class CasesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private minio: MinioService,
+    private notifications: NotificationsService,
+  ) {}
 
   findAll(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
     return this.prisma.case.findMany({
@@ -70,6 +80,14 @@ export class CasesService {
       },
     });
 
+    await this.notifications.notifyAreaInteresse(
+      created.tipo,
+      created.id,
+      `Novo caso: ${CASE_TIPO_LABEL[created.tipo]}`,
+      `"${created.nome}" foi registrado em ${created.municipio}/${created.estado}.`,
+      user.id,
+    );
+
     return this.findOne(created.id);
   }
 
@@ -95,6 +113,50 @@ export class CasesService {
         },
       }),
     ]);
+
+    if (current.createdById !== user.id) {
+      if (dto.status === "validado") {
+        await this.notifications.create(
+          current.createdById,
+          "contribuicao_aceita",
+          "Contribuição aceita",
+          `Seu caso "${current.nome}" foi validado.`,
+          id,
+        );
+      } else if (dto.status === "rejeitado") {
+        await this.notifications.create(
+          current.createdById,
+          "contribuicao_retorno",
+          "Retorno sobre sua contribuição",
+          dto.note
+            ? `Seu caso "${current.nome}" foi rejeitado. Motivo: ${dto.note}`
+            : `Seu caso "${current.nome}" foi rejeitado.`,
+          id,
+        );
+      }
+    }
+
+    return this.findOne(id);
+  }
+
+  async uploadAnexo(id: string, file?: Express.Multer.File) {
+    await this.findOne(id);
+    if (!file) throw new BadRequestException("Envie um arquivo");
+
+    const ext = file.originalname.split(".").pop()?.toLowerCase() ?? "";
+    if (!ANEXO_EXTENSOES.includes(ext)) {
+      throw new BadRequestException(
+        `Extensão .${ext} não suportada para anexo. Use .pdf ou .kmz`,
+      );
+    }
+
+    const key = `cases/${id}/${randomUUID()}.${ext}`;
+    const anexoUrl = await this.minio.uploadAttachment(key, file.buffer, file.mimetype);
+
+    await this.prisma.case.update({
+      where: { id },
+      data: { anexoUrl, anexoKey: key, anexoNome: file.originalname },
+    });
 
     return this.findOne(id);
   }

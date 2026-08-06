@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import type { CaseStatus } from "@geo/shared";
 import { CasesService } from "./cases.service";
 import { CreateCaseDto } from "./dto/create-case.dto";
@@ -40,6 +52,13 @@ export class CasesController {
   @RequirePermissions("case:create")
   create(@Body() dto: CreateCaseDto, @CurrentUser() user: AuthUser) {
     return this.casesService.create(dto, user);
+  }
+
+  @Post(":id/anexo")
+  @RequirePermissions("case:create")
+  @UseInterceptors(FileInterceptor("file"))
+  uploadAnexo(@Param("id") id: string, @UploadedFile() file: Express.Multer.File) {
+    return this.casesService.uploadAnexo(id, file);
   }
 
   @Patch(":id/status")

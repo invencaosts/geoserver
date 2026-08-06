@@ -1,8 +1,8 @@
-# Grilagem GIS — Plataforma de Monitoramento Geoespacial
+# Observatório Grilagem de Terras — Plataforma de Monitoramento Geoespacial
 
 Plataforma de gestão colaborativa de casos de grilagem de terras: mapa com camadas geoespaciais, importação de dados espaciais (Shapefile/GeoJSON/KML/CSV), workflow de validação de casos com auditoria, e controle de acesso baseado em papéis (RBAC).
 
-Reconstrução do sistema antigo (`geo-server-ifs`, mock estático sem backend), agora com persistência real, autenticação, processamento assíncrono e banco geoespacial de verdade.
+Persistência real, autenticação, processamento assíncrono e banco geoespacial de verdade.
 
 ## Status atual (Sprint dias 1–4 de 5)
 
@@ -12,7 +12,7 @@ Reconstrução do sistema antigo (`geo-server-ifs`, mock estático sem backend),
 | 2 | Mapa & Camadas (CRUD de camadas, MapLibre) | ✅ feito |
 | 3 | Dados Espaciais (upload → fila → parser → PostGIS) | ✅ feito |
 | 4 | Casos de Grilagem (workflow de validação + auditoria + dashboard) | ✅ feito |
-| 5 | Relatórios + deploy em produção | ⏳ pendente |
+| 5 | Relatórios (✅ feito) + deploy em produção (⏳ pendente) | ⏳ em andamento |
 
 Backlog fora do sprint de 5 dias (não iniciado): integrações externas (INCRA/CPT/IBAMA/PRODES), notificações, 2FA, rate limiting, testes automatizados, mascaramento de dados sensíveis (LGPD), tiles vetoriais reais via Martin/pg_tileserv (infra já provisionada, wiring no front ainda não feito).
 
@@ -39,6 +39,7 @@ apps/
     src/layers/         # CRUD de camadas
     src/datasets/       # upload, parsers (shp/geojson/kml/csv), fila de import
     src/cases/          # casos de grilagem, workflow, dashboard
+    src/reports/        # exportação de relatórios (CSV/PDF) de casos e datasets
     src/users/          # gestão de usuários/papéis
     src/storage/        # cliente MinIO
     src/queue/          # config BullMQ
@@ -54,6 +55,7 @@ docker-compose.yml      # postgres+postgis, redis, minio, martin (dev)
 - **Dados Espaciais**: upload de arquivo → grava original no MinIO → enfileira job no BullMQ → worker faz parse (shapefile via zip, GeoJSON, KML, CSV com lat/lng) → grava features no PostGIS (`ST_GeomFromGeoJSON`) → dataset fica `active`/`error` conforme resultado. Export em GeoJSON.
 - **Casos de Grilagem**: criação de relato, workflow de status com transições restritas (`pendente → em_verificacao → validado/rejeitado`), histórico de auditoria (`case_status_history`), dashboard com KPIs e municípios mais afetados agregados no banco.
 - **Mapa**: base OSM + pontos dos casos (coloridos por prioridade) + geometrias dos datasets ativos, tudo renderizado via MapLibre a partir de dados reais da API.
+- **Relatórios**: export em CSV (lista de casos filtrável, inventário de datasets) e PDF (resumo com KPIs do dashboard + tabelas) gerados sob demanda no backend a partir de dados reais.
 
 ## Rodando em desenvolvimento
 
@@ -103,6 +105,7 @@ pnpm dev:web     # http://localhost:3000
 4. **Casos de Grilagem** (`/casos`): criar um relato com lat/lng de teste, tentar pular etapa do workflow (deve bloquear), avançar `pendente → em_verificacao → validado`, conferir dashboard atualizando e o ponto aparecendo no mapa colorido por prioridade.
 5. **Usuários** (`/usuarios`, precisa ser admin): criar um segundo usuário com papel `leitor` ou `contribuidor`, logar com ele e confirmar que ações restritas (criar camada, validar caso) ficam bloqueadas — isso valida o RBAC de verdade, não só visualmente.
 6. **Dark mode**: alternar no ícone do header — confere se as cores/glass panels ficam legíveis nos dois temas.
+7. **Relatórios** (`/relatorios`): baixar CSV/PDF de casos (com e sem filtro de status/tipo/município) e CSV/PDF de datasets — conferir que os dados batem com `/casos` e `/dados`.
 
 Se algo quebrar: logs da API em `apps/api` (rodando via `pnpm dev:api`), logs do worker de import estão no mesmo processo da API (BullMQ roda embutido).
 
@@ -120,7 +123,6 @@ Não faça deploy do estado atual em produção: `JWT_SECRET` e senhas do banco/
 ## O que falta / próximos passos
 
 **Fechando o sprint (dia 5):**
-- Export de relatórios (PDF/CSV) das views de analytics.
 - Dockerfiles de produção + `docker-compose.prod.yml`.
 - Smoke test ponta a ponta em ambiente de produção.
 

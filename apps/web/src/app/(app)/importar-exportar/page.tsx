@@ -31,7 +31,9 @@ const FORMATS = [
   { id: "shapefile", name: "Shapefile", ext: ".zip", icon: Database, accept: ".zip" },
   { id: "geojson", name: "GeoJSON", ext: ".geojson", icon: FileJson, accept: ".geojson,.json" },
   { id: "kml", name: "KML", ext: ".kml", icon: Globe, accept: ".kml" },
+  { id: "kmz", name: "KMZ", ext: ".kmz", icon: Globe, accept: ".kmz" },
   { id: "csv", name: "CSV", ext: ".csv", icon: FileSpreadsheet, accept: ".csv" },
+  { id: "pdf", name: "PDF", ext: ".pdf", icon: FileText, accept: ".pdf" },
 ];
 
 const STATUS_ICON: Record<string, React.ElementType> = {
@@ -278,6 +280,9 @@ function UploadForm({ format, onDone }: { format: (typeof FORMATS)[number]; onDo
         )}
         {format.id === "csv" && (
           <p className="text-xs text-muted-foreground">O CSV precisa de colunas de latitude/longitude</p>
+        )}
+        {format.id === "pdf" && (
+          <p className="text-xs text-muted-foreground">PDF fica guardado como documento, sem geometria no mapa</p>
         )}
       </div>
       <Button type="submit" className="w-full gap-2" disabled={upload.isPending}>

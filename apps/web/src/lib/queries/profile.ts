@@ -1,8 +1,36 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import type { AuthUser } from "@geo/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AuthUser, UserDTO } from "@geo/shared";
+import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+
+export function useMyProfile() {
+  return useQuery({
+    queryKey: ["users", "me"],
+    queryFn: () => apiFetch<UserDTO>("/users/me"),
+  });
+}
+
+export interface UpdateProfilePayload {
+  nomeSocial?: string;
+  telefone?: string;
+  instituicao?: string;
+  endereco?: string;
+  localidade?: string;
+  quemRepresenta?: string;
+  idiomas?: string[];
+  areasInteresse?: UserDTO["areasInteresse"];
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateProfilePayload) =>
+      apiFetch<UserDTO>("/users/me", { method: "PATCH", body: data }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users", "me"] }),
+  });
+}
 
 export function useUploadAvatar() {
   const updateUser = useAuthStore((s) => s.updateUser);

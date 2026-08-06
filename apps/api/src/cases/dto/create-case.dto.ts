@@ -1,12 +1,7 @@
 import { IsIn, IsLatitude, IsLongitude, IsOptional, IsString, MinLength } from "class-validator";
 import type { CasePrioridade, CaseTipo } from "@geo/shared";
 
-const TIPOS: CaseTipo[] = [
-  "invasao_propriedade",
-  "ocupacao_irregular",
-  "desmatamento_ilegal",
-  "conflito_agrario",
-];
+const TIPOS: CaseTipo[] = ["institucional", "titulo_falso", "car"];
 const PRIORIDADES: CasePrioridade[] = ["baixa", "media", "alta", "critica"];
 
 export class CreateCaseDto {

@@ -9,6 +9,9 @@ import { UsersModule } from "./users/users.module";
 import { LayersModule } from "./layers/layers.module";
 import { DatasetsModule } from "./datasets/datasets.module";
 import { CasesModule } from "./cases/cases.module";
+import { ReportsModule } from "./reports/reports.module";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { InstituicoesModule } from "./instituicoes/instituicoes.module";
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { CasesModule } from "./cases/cases.module";
     LayersModule,
     DatasetsModule,
     CasesModule,
+    ReportsModule,
+    NotificationsModule,
+    InstituicoesModule,
   ],
   controllers: [AppController],
 })

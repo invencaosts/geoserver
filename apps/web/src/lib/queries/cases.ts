@@ -39,6 +39,20 @@ export function useCreateCase() {
   });
 }
 
+export function useUploadCaseAnexo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiFetch<CaseDTO>(`/cases/${id}/anexo`, { method: "POST", formData });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cases"] });
+    },
+  });
+}
+
 export function useUpdateCaseStatus() {
   const qc = useQueryClient();
   return useMutation({

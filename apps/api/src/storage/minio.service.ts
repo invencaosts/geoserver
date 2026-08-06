@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { Client } from "minio";
 
 const AVATAR_BUCKET = "avatars";
+const ATTACHMENTS_BUCKET = "attachments";
 
 @Injectable()
 export class MinioService implements OnModuleInit {
@@ -27,20 +28,23 @@ export class MinioService implements OnModuleInit {
   async onModuleInit() {
     await this.ensureBucket(this.bucket);
     await this.ensureBucket(AVATAR_BUCKET);
-    await this.client.setBucketPolicy(
-      AVATAR_BUCKET,
-      JSON.stringify({
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Effect: "Allow",
-            Principal: { AWS: ["*"] },
-            Action: ["s3:GetObject"],
-            Resource: [`arn:aws:s3:::${AVATAR_BUCKET}/*`],
-          },
-        ],
-      }),
-    );
+    await this.ensureBucket(ATTACHMENTS_BUCKET);
+    for (const bucket of [AVATAR_BUCKET, ATTACHMENTS_BUCKET]) {
+      await this.client.setBucketPolicy(
+        bucket,
+        JSON.stringify({
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Principal: { AWS: ["*"] },
+              Action: ["s3:GetObject"],
+              Resource: [`arn:aws:s3:::${bucket}/*`],
+            },
+          ],
+        }),
+      );
+    }
   }
 
   private async ensureBucket(bucket: string) {
@@ -71,5 +75,12 @@ export class MinioService implements OnModuleInit {
       "Content-Type": contentType ?? "application/octet-stream",
     });
     return `${this.publicUrl}/${AVATAR_BUCKET}/${key}`;
+  }
+
+  async uploadAttachment(key: string, buffer: Buffer, contentType?: string) {
+    await this.client.putObject(ATTACHMENTS_BUCKET, key, buffer, buffer.length, {
+      "Content-Type": contentType ?? "application/octet-stream",
+    });
+    return `${this.publicUrl}/${ATTACHMENTS_BUCKET}/${key}`;
   }
 }

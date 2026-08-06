@@ -3,16 +3,35 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Database, MapPinned, ShieldCheck } from "lucide-react";
+import type { PerfilContribuidor, RoleName } from "@geo/shared";
+import { PERFIL_CONTRIBUIDOR_LABEL } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SelectField } from "@/components/ui/select-field";
+import { InstitutionAutocomplete } from "@/components/ui/institution-autocomplete";
 import { useLogin, useRegister } from "@/lib/queries/auth";
 import { toast } from "sonner";
 
+const REGISTER_ROLE_OPTIONS: { value: RoleName; label: string }[] = [
+  { value: "leitor", label: "Leitor" },
+  { value: "contribuidor", label: "Contribuidor" },
+  { value: "verificador", label: "Verificador" },
+];
+
+function formatCpf(value: string) {
+  return value
+    .replace(/\D/g, "")
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
 const HIGHLIGHTS = [
   { icon: MapPinned, title: "Mapa territorial em tempo real", desc: "Camadas geoespaciais e casos plotados sobre PostGIS" },
-  { icon: Database, title: "Dados que chegam prontos", desc: "Shapefile, GeoJSON, KML e CSV processados automaticamente" },
+  { icon: Database, title: "Dados que chegam prontos", desc: "Shapefile, GeoJSON, KML, KMZ, CSV e PDF processados automaticamente" },
   { icon: ShieldCheck, title: "Acesso sob controle", desc: "Workflow de validação com auditoria e papéis de acesso" },
 ];
 
@@ -20,12 +39,18 @@ export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [nome, setNome] = useState("");
+  const [nomeSocial, setNomeSocial] = useState("");
   const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
+  const [role, setRole] = useState<RoleName>("leitor");
+  const [perfilContribuidor, setPerfilContribuidor] = useState<PerfilContribuidor | "">("");
+  const [quemRepresenta, setQuemRepresenta] = useState("");
 
   const login = useLogin();
   const register = useRegister();
   const pending = login.isPending || register.isPending;
+  const precisaPerfil = mode === "register" && (role === "contribuidor" || role === "verificador");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +58,16 @@ export default function LoginPage() {
       if (mode === "login") {
         await login.mutateAsync({ email, senha });
       } else {
-        await register.mutateAsync({ nome, email, senha });
+        await register.mutateAsync({
+          nome,
+          nomeSocial: nomeSocial || undefined,
+          email,
+          cpf,
+          senha,
+          role,
+          perfilContribuidor: precisaPerfil ? (perfilContribuidor as PerfilContribuidor) : undefined,
+          quemRepresenta: precisaPerfil ? quemRepresenta : undefined,
+        });
       }
       router.push("/mapa");
     } catch (err) {
@@ -60,7 +94,7 @@ export default function LoginPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg shadow-primary/30">
             <MapPinned className="h-4.5 w-4.5" />
           </div>
-          <span className="text-sm font-semibold text-white">Grilagem GIS</span>
+          <span className="text-sm font-semibold text-white">Observatório Grilagem de Terras</span>
         </div>
 
         <div className="relative max-w-md space-y-8">
@@ -70,7 +104,7 @@ export default function LoginPage() {
               Monitoramento territorial colaborativo
             </span>
             <h2 className="text-3xl font-semibold leading-tight text-white">
-              Vigilância geoespacial contra grilagem de terras
+              Observatório Grilagem de Terras Ariovaldo Umbelino de Oliveira
             </h2>
             <p className="text-sm leading-relaxed text-white/50">
               Uma plataforma única pra registrar, validar e acompanhar ocorrências com dados georreferenciados de verdade.
@@ -92,7 +126,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="relative text-[11px] text-white/30">Plataforma interna · dados sensíveis, acesso restrito</p>
+        <p className="relative text-[11px] text-white/30">
+          Em homenagem ao Professor Doutor Ariovaldo Umbelino de Oliveira
+        </p>
       </div>
 
       {/* painel do formulário */}
@@ -124,10 +160,26 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "register" && (
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
-                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="nome">Nome</Label>
+                  <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="nomeSocial">Nome social (opcional)</Label>
+                  <Input id="nomeSocial" value={nomeSocial} onChange={(e) => setNomeSocial(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cpf">CPF</Label>
+                  <Input
+                    id="cpf"
+                    value={cpf}
+                    onChange={(e) => setCpf(formatCpf(e.target.value))}
+                    placeholder="000.000.000-00"
+                    required
+                  />
+                </div>
+              </>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
@@ -150,6 +202,50 @@ export default function LoginPage() {
                 required
               />
             </div>
+            {mode === "register" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Papel</Label>
+                  <SelectField
+                    id="role"
+                    value={role}
+                    onValueChange={setRole}
+                    options={REGISTER_ROLE_OPTIONS}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Acima de leitor passa por validação de um usuário com papel superior.
+                  </p>
+                </div>
+
+                {precisaPerfil && (
+                  <div className="space-y-4 rounded-lg border border-border/60 p-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="perfilContribuidor">Perfil</Label>
+                      <SelectField
+                        id="perfilContribuidor"
+                        value={perfilContribuidor}
+                        onValueChange={setPerfilContribuidor}
+                        placeholder="Selecione"
+                        options={Object.entries(PERFIL_CONTRIBUIDOR_LABEL).map(([value, label]) => ({
+                          value: value as PerfilContribuidor,
+                          label,
+                        }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quemRepresenta">Quem você representa</Label>
+                      <InstitutionAutocomplete
+                        id="quemRepresenta"
+                        value={quemRepresenta}
+                        onValueChange={setQuemRepresenta}
+                        placeholder="Busque sua instituição de ensino ou pesquisa"
+                        required={precisaPerfil}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
             </Button>

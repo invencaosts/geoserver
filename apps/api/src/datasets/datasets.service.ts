@@ -11,8 +11,12 @@ const EXT_TO_FORMAT: Record<string, DatasetFormat> = {
   geojson: "GeoJSON",
   json: "GeoJSON",
   kml: "KML",
+  kmz: "KMZ",
   csv: "CSV",
+  pdf: "PDF",
 };
+
+const SEM_GEOMETRIA: DatasetFormat[] = ["PDF"];
 
 export const DATASET_IMPORT_QUEUE = "dataset-import";
 
@@ -39,16 +43,18 @@ export class DatasetsService {
     const formato = EXT_TO_FORMAT[ext];
     if (!formato) {
       throw new Error(
-        `Extensão .${ext} não suportada. Use .zip (shapefile), .geojson, .kml ou .csv`,
+        `Extensão .${ext} não suportada. Use .zip (shapefile), .geojson, .kml, .kmz, .csv ou .pdf`,
       );
     }
+
+    const semGeometria = SEM_GEOMETRIA.includes(formato);
 
     const dataset = await this.prisma.dataset.create({
       data: {
         nome,
         formato,
         tipoGeometria: "Point",
-        status: "processing",
+        status: semGeometria ? "active" : "processing",
       },
     });
 
@@ -60,7 +66,10 @@ export class DatasetsService {
       data: { storageKey },
     });
 
-    await this.importQueue.add("import", { datasetId: dataset.id });
+    // documentos sem geometria (PDF) só ficam guardados, não entram no pipeline de parse
+    if (!semGeometria) {
+      await this.importQueue.add("import", { datasetId: dataset.id });
+    }
 
     return this.findOne(dataset.id);
   }

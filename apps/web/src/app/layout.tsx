@@ -15,7 +15,7 @@ const fontDisplay = Roboto_Slab({
 });
 
 export const metadata: Metadata = {
-  title: "Grilagem GIS",
+  title: "Observatório Grilagem de Terras",
   description: "Plataforma de monitoramento geoespacial de grilagem de terras",
 };
 

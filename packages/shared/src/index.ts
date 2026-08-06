@@ -40,6 +40,44 @@ export interface AuthUser {
   avatarUrl?: string | null;
 }
 
+export type RoleApprovalStatus = "pendente" | "aprovado" | "rejeitado";
+
+export type PerfilContribuidor =
+  | "pesquisador"
+  | "militante_movimento_social"
+  | "partido_politico"
+  | "servidor_publico"
+  | "lideranca_comunitaria"
+  | "movimento_social_organizado"
+  | "conselhos_ongs";
+
+export const PERFIL_CONTRIBUIDOR_LABEL: Record<PerfilContribuidor, string> = {
+  pesquisador: "Pesquisador",
+  militante_movimento_social: "Militante de movimento social",
+  partido_politico: "Partido político",
+  servidor_publico: "Servidor público",
+  lideranca_comunitaria: "Liderança comunitária",
+  movimento_social_organizado: "Movimento social organizado",
+  conselhos_ongs: "Conselhos e ONGs",
+};
+
+export interface UserDTO extends AuthUser {
+  cpf?: string | null;
+  requestedRole: RoleName;
+  roleApprovalStatus: RoleApprovalStatus;
+  perfilContribuidor?: PerfilContribuidor | null;
+  localidade?: string | null;
+  nomeSocial?: string | null;
+  quemRepresenta?: string | null;
+  telefone?: string | null;
+  instituicao?: string | null;
+  endereco?: string | null;
+  idiomas: string[];
+  areasInteresse: CaseTipo[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type LayerType = "WMS" | "WFS" | "WCS" | "Vector" | "Raster";
 export type LayerCategory = "base" | "overlay" | "analysis";
 
@@ -59,7 +97,7 @@ export interface LayerDTO {
   updatedAt: string;
 }
 
-export type DatasetFormat = "Shapefile" | "GeoJSON" | "KML" | "CSV";
+export type DatasetFormat = "Shapefile" | "GeoJSON" | "KML" | "KMZ" | "CSV" | "PDF";
 export type DatasetGeomType = "Point" | "Polygon" | "Line";
 export type DatasetStatus = "processing" | "active" | "error";
 
@@ -75,11 +113,13 @@ export interface DatasetDTO {
   createdAt: string;
 }
 
-export type CaseTipo =
-  | "invasao_propriedade"
-  | "ocupacao_irregular"
-  | "desmatamento_ilegal"
-  | "conflito_agrario";
+export type CaseTipo = "institucional" | "titulo_falso" | "car";
+
+export const CASE_TIPO_LABEL: Record<CaseTipo, string> = {
+  institucional: "Grilagem Institucional",
+  titulo_falso: "Grilagem por Título Falso",
+  car: "Grilagem por CAR",
+};
 
 export type CasePrioridade = "baixa" | "media" | "alta" | "critica";
 
@@ -102,6 +142,8 @@ export interface CaseDTO {
   denunciante?: string | null;
   prioridade: CasePrioridade;
   status: CaseStatus;
+  anexoUrl?: string | null;
+  anexoNome?: string | null;
   createdById: string;
   createdAt: string;
   updatedAt: string;
@@ -115,6 +157,37 @@ export interface CaseStatusHistoryDTO {
   changedById: string;
   note?: string | null;
   createdAt: string;
+}
+
+export type NotificationTipo =
+  | "contribuicao_aceita"
+  | "contribuicao_retorno"
+  | "novo_caso_area_interesse";
+
+export const NOTIFICATION_TIPO_LABEL: Record<NotificationTipo, string> = {
+  contribuicao_aceita: "Contribuição aceita",
+  contribuicao_retorno: "Retorno sobre contribuição",
+  novo_caso_area_interesse: "Novidade na sua área de interesse",
+};
+
+export interface NotificationDTO {
+  id: string;
+  tipo: NotificationTipo;
+  titulo: string;
+  mensagem: string;
+  lida: boolean;
+  caseId?: string | null;
+  createdAt: string;
+}
+
+export type InstituicaoTipo = "educacao_basica" | "educacao_superior";
+
+export interface InstituicaoDTO {
+  nome: string;
+  municipio: string;
+  uf: string;
+  tipo: InstituicaoTipo;
+  dependencia?: string | null;
 }
 
 export function hasPermission(role: RoleName, permission: Permission): boolean {

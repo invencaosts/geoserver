@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Camera, ChevronsUpDown, LogOut, MapPinned, PanelLeft } from "lucide-react";
+import { Camera, ChevronsUpDown, LogOut, MapPinned, PanelLeft, UserCircle } from "lucide-react";
 import { hasPermission } from "@geo/shared";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,7 @@ export function AppSidebar({
           </div>
           {!collapsed && (
             <span className="truncate font-display text-[14.5px] font-bold tracking-tight text-sidebar-foreground">
-              Grilagem GIS
+              Observatório Grilagem de Terras
             </span>
           )}
         </div>
@@ -164,6 +164,10 @@ export function AppSidebar({
           <DropdownMenuContent align="end" side="top" className="w-60 rounded-none">
             <div className="px-2 py-2 text-xs text-muted-foreground">{user?.email}</div>
             <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-2.5" onClick={() => router.push("/perfil")}>
+              <UserCircle className="h-4 w-4" />
+              Meu perfil
+            </DropdownMenuItem>
             <DropdownMenuItem className="gap-2.5" onClick={() => fileRef.current?.click()}>
               <Camera className="h-4 w-4" />
               Alterar foto

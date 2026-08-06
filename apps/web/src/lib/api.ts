@@ -41,3 +41,22 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   if (res.status === 204) return undefined as T;
   return res.json();
 }
+
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const token = useAuthStore.getState().token;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+
+  if (res.status === 401) {
+    useAuthStore.getState().clear();
+  }
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, data.message ?? "Erro na requisição");
+  }
+
+  return res.blob();
+}

@@ -8,5 +8,6 @@ import { DatasetImportProcessor } from "./dataset-import.processor";
   imports: [BullModule.registerQueue({ name: DATASET_IMPORT_QUEUE })],
   providers: [DatasetsService, DatasetImportProcessor],
   controllers: [DatasetsController],
+  exports: [DatasetsService],
 })
 export class DatasetsModule {}

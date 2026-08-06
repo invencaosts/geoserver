@@ -36,7 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden bg-background">
       <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader title={current?.label ?? "Grilagem GIS"} subtitle={current?.subtitle} />
+        <AppHeader title={current?.label ?? "Observatório Grilagem de Terras"} subtitle={current?.subtitle} />
         <main className="min-h-0 flex-1 overflow-auto">{children}</main>
       </div>
     </div>

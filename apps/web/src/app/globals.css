@@ -132,6 +132,50 @@
   --sidebar-ring: #d98a5e;
 }
 
+/* alto contraste — WCAG AAA, preto/branco puros, sem gradientes ou transparência */
+.contraste {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --primary: #ffff00;
+  --primary-foreground: #000000;
+  --secondary: #000000;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a1a;
+  --muted-foreground: #ffffff;
+  --accent: #ffff00;
+  --accent-foreground: #000000;
+  --destructive: #ff5555;
+  --border: #ffffff;
+  --input: #ffffff;
+  --ring: #ffff00;
+  --moss: #55ff55;
+  --moss-soft: #000000;
+  --gold: #ffff00;
+  --gold-soft: #000000;
+  --chart-1: #ffff00;
+  --chart-2: #00ffff;
+  --chart-3: #55ff55;
+  --chart-4: #ff55ff;
+  --chart-5: #ff5555;
+  --radius: 0rem;
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffff00;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #000000;
+  --sidebar-accent-foreground: #ffff00;
+  --sidebar-border: #ffffff;
+  --sidebar-ring: #ffff00;
+}
+
+.contraste * {
+  border-color: var(--border) !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

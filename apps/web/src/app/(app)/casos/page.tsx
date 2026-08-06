@@ -1,27 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, ShieldAlert } from "lucide-react";
+import { useRef, useState } from "react";
+import { Paperclip, Plus, ShieldAlert } from "lucide-react";
 import type { CasePrioridade, CaseStatus, CaseTipo } from "@geo/shared";
-import { hasPermission } from "@geo/shared";
+import { CASE_TIPO_LABEL as TIPO_LABEL, hasPermission } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectField } from "@/components/ui/select-field";
 import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useCaseDashboard, useCases, useCreateCase, useUpdateCaseStatus } from "@/lib/queries/cases";
+import { useCaseDashboard, useCases, useCreateCase, useUpdateCaseStatus, useUploadCaseAnexo } from "@/lib/queries/cases";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const TIPO_LABEL: Record<CaseTipo, string> = {
-  invasao_propriedade: "Invasão de Propriedade",
-  ocupacao_irregular: "Ocupação Irregular",
-  desmatamento_ilegal: "Desmatamento Ilegal",
-  conflito_agrario: "Conflito Agrário",
-};
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
   pendente: "Pendente",
@@ -76,17 +69,18 @@ export default function CasosPage() {
                 <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Local</th>
                 <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Prioridade</th>
                 <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Anexo</th>
               </tr>
             </thead>
             <tbody>
               {casesLoading &&
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}><td colSpan={5} className="border-b border-border p-3"><Skeleton className="h-4 w-full" /></td></tr>
+                  <tr key={i}><td colSpan={6} className="border-b border-border p-3"><Skeleton className="h-4 w-full" /></td></tr>
                 ))}
 
               {!casesLoading && cases?.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-16 text-center">
+                  <td colSpan={6} className="py-16 text-center">
                     <ShieldAlert className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
                     <p className="text-sm text-muted-foreground">Nenhum caso registrado ainda.</p>
                   </td>
@@ -179,6 +173,8 @@ const STAMP_TONE: Record<CaseStatus, string> = {
 
 function CaseRow({ index, caseItem, canValidate }: { index: number; caseItem: any; canValidate: boolean }) {
   const updateStatus = useUpdateCaseStatus();
+  const uploadAnexo = useUploadCaseAnexo();
+  const fileRef = useRef<HTMLInputElement>(null);
   const options = NEXT_STATUS[caseItem.status as CaseStatus] ?? [];
 
   return (
@@ -198,20 +194,51 @@ function CaseRow({ index, caseItem, canValidate }: { index: number; caseItem: an
       </td>
       <td className="border-b border-border px-3 py-3">
         {canValidate && options.length > 0 ? (
-          <Select onValueChange={(status) => updateStatus.mutate({ id: caseItem.id, status: status as CaseStatus })}>
-            <SelectTrigger className="h-7 w-[168px] rounded-none text-xs">
-              <SelectValue placeholder={STATUS_LABEL[caseItem.status as CaseStatus]} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((o) => (
-                <SelectItem key={o} value={o}>{STATUS_LABEL[o]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            className="h-7 rounded-none text-xs"
+            placeholder={STATUS_LABEL[caseItem.status as CaseStatus]}
+            onValueChange={(status: CaseStatus) => updateStatus.mutate({ id: caseItem.id, status })}
+            options={options.map((o) => ({ value: o, label: STATUS_LABEL[o] }))}
+          />
         ) : (
           <span className={cn("border-y border-current py-0.5 text-[10.5px] font-bold uppercase tracking-wide", STAMP_TONE[caseItem.status as CaseStatus])}>
             {STATUS_LABEL[caseItem.status as CaseStatus]}
           </span>
+        )}
+      </td>
+      <td className="border-b border-border px-3 py-3">
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf,.kmz"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) uploadAnexo.mutate({ id: caseItem.id, file });
+            e.target.value = "";
+          }}
+        />
+        {caseItem.anexoUrl ? (
+          <a
+            href={caseItem.anexoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-[11.5px] text-primary hover:underline"
+          >
+            <Paperclip className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-[120px] truncate">{caseItem.anexoNome ?? "anexo"}</span>
+          </a>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 text-[11.5px] text-muted-foreground"
+            disabled={uploadAnexo.isPending}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Paperclip className="h-3.5 w-3.5" />
+            anexar
+          </Button>
         )}
       </td>
     </tr>
@@ -222,7 +249,7 @@ function NewCaseDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     nome: "",
-    tipo: "invasao_propriedade" as CaseTipo,
+    tipo: "institucional" as CaseTipo,
     municipio: "",
     estado: "",
     descricao: "",
@@ -265,24 +292,19 @@ function NewCaseDialog() {
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
-              <Select value={form.tipo} onValueChange={(v) => setForm((f) => ({ ...f, tipo: v as CaseTipo }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(TIPO_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SelectField
+                value={form.tipo}
+                onValueChange={(tipo: CaseTipo) => setForm((f) => ({ ...f, tipo }))}
+                options={Object.entries(TIPO_LABEL).map(([value, label]) => ({ value: value as CaseTipo, label }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Prioridade</Label>
-              <Select value={form.prioridade} onValueChange={(v) => setForm((f) => ({ ...f, prioridade: v as CasePrioridade }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="baixa">Baixa</SelectItem>
-                  <SelectItem value="media">Média</SelectItem>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="critica">Crítica</SelectItem>
-                </SelectContent>
-              </Select>
+              <SelectField
+                value={form.prioridade}
+                onValueChange={(prioridade: CasePrioridade) => setForm((f) => ({ ...f, prioridade }))}
+                options={Object.entries(PRIORIDADE_LABEL).map(([value, label]) => ({ value: value as CasePrioridade, label }))}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="case-municipio">Município</Label>

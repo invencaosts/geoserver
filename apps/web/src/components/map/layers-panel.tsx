@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectField } from "@/components/ui/select-field";
 import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateLayer, useDeleteLayer, useLayers, useUpdateLayer } from "@/lib/queries/layers";
@@ -141,27 +141,29 @@ function NewLayerDialog() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Tipo</Label>
-              <Select value={tipo} onValueChange={(v) => setTipo(v as LayerType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="WMS">WMS</SelectItem>
-                  <SelectItem value="WFS">WFS</SelectItem>
-                  <SelectItem value="WCS">WCS</SelectItem>
-                  <SelectItem value="Vector">Vetor</SelectItem>
-                  <SelectItem value="Raster">Raster</SelectItem>
-                </SelectContent>
-              </Select>
+              <SelectField<LayerType>
+                value={tipo}
+                onValueChange={setTipo}
+                options={[
+                  { value: "WMS", label: "WMS" },
+                  { value: "WFS", label: "WFS" },
+                  { value: "WCS", label: "WCS" },
+                  { value: "Vector", label: "Vetor" },
+                  { value: "Raster", label: "Raster" },
+                ]}
+              />
             </div>
             <div className="space-y-2">
               <Label>Categoria</Label>
-              <Select value={categoria} onValueChange={(v) => setCategoria(v as LayerCategory)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="base">Base</SelectItem>
-                  <SelectItem value="overlay">Overlay</SelectItem>
-                  <SelectItem value="analysis">Análise</SelectItem>
-                </SelectContent>
-              </Select>
+              <SelectField<LayerCategory>
+                value={categoria}
+                onValueChange={setCategoria}
+                options={[
+                  { value: "base", label: "Base" },
+                  { value: "overlay", label: "Overlay" },
+                  { value: "analysis", label: "Análise" },
+                ]}
+              />
             </div>
           </div>
           <div className="space-y-2">

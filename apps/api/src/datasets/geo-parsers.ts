@@ -1,6 +1,7 @@
 import { parse as parseCsv } from "csv-parse/sync";
 import { DOMParser } from "@xmldom/xmldom";
 import { kml as kmlToGeoJson } from "@tmcw/togeojson";
+import JSZip from "jszip";
 
 // shpjs é um bundle voltado a browser (usa `self`); precisa desse polyfill pra rodar em Node.
 if (typeof (globalThis as any).self === "undefined") {
@@ -80,14 +81,29 @@ function parseGeoJsonBuffer(buffer: Buffer): ParsedResult {
   return { features, geomType };
 }
 
-function parseKmlBuffer(buffer: Buffer): ParsedResult {
-  const dom = new DOMParser().parseFromString(buffer.toString("utf-8"), "text/xml");
+function parseKmlText(xml: string): ParsedResult {
+  const dom = new DOMParser().parseFromString(xml, "text/xml");
   const geojson = kmlToGeoJson(dom as unknown as Document);
   const features = normalizeFeatureCollection(geojson);
   const geomType = features.length
     ? geomTypeFromGeoJsonType(features[0].geometry.type)
     : "Point";
   return { features, geomType };
+}
+
+function parseKmlBuffer(buffer: Buffer): ParsedResult {
+  return parseKmlText(buffer.toString("utf-8"));
+}
+
+async function parseKmzBuffer(buffer: Buffer): Promise<ParsedResult> {
+  const zip = await JSZip.loadAsync(buffer);
+  const kmlEntry = Object.values(zip.files).find(
+    (f) => !f.dir && f.name.toLowerCase().endsWith(".kml"),
+  );
+  if (!kmlEntry) throw new Error("KMZ não contém nenhum arquivo .kml");
+
+  const xml = await kmlEntry.async("string");
+  return parseKmlText(xml);
 }
 
 async function parseShapefileZip(buffer: Buffer): Promise<ParsedResult> {
@@ -102,7 +118,7 @@ async function parseShapefileZip(buffer: Buffer): Promise<ParsedResult> {
 
 export async function parseSpatialFile(
   buffer: Buffer,
-  formato: "Shapefile" | "GeoJSON" | "KML" | "CSV",
+  formato: "Shapefile" | "GeoJSON" | "KML" | "KMZ" | "CSV" | "PDF",
 ): Promise<ParsedResult> {
   switch (formato) {
     case "CSV":
@@ -111,7 +127,11 @@ export async function parseSpatialFile(
       return parseGeoJsonBuffer(buffer);
     case "KML":
       return parseKmlBuffer(buffer);
+    case "KMZ":
+      return parseKmzBuffer(buffer);
     case "Shapefile":
       return parseShapefileZip(buffer);
+    case "PDF":
+      throw new Error("PDF não tem geometria — não deveria entrar no pipeline de parse");
   }
 }

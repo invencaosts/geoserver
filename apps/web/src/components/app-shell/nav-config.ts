@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, LayoutGrid, Map, ShieldAlert, Database, Users } from "lucide-react";
+import { ArrowLeftRight, LayoutGrid, Map, ShieldAlert, Database, Users, FileText } from "lucide-react";
 import type { Permission } from "@geo/shared";
 
 export interface NavItem {
@@ -38,6 +38,13 @@ export const NAV_ITEMS: NavItem[] = [
     subtitle: "Operações de entrada e saída de dados espaciais",
     icon: ArrowLeftRight,
     permission: "dataset:write",
+  },
+  {
+    href: "/relatorios",
+    label: "Relatórios",
+    subtitle: "Exportação de dados em CSV e PDF",
+    icon: FileText,
+    permission: "case:read",
   },
   {
     href: "/usuarios",
