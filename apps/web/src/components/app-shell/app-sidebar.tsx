@@ -28,13 +28,7 @@ const ROLE_LABEL: Record<string, string> = {
   leitor: "Leitor",
 };
 
-export function AppSidebar({
-  collapsed,
-  onToggle,
-}: {
-  collapsed: boolean;
-  onToggle: () => void;
-}) {
+export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -75,26 +69,41 @@ export function AppSidebar({
         collapsed ? "w-[76px]" : "w-[252px]",
       )}
     >
-      <div className={cn("flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border/70", collapsed ? "justify-center px-0" : "justify-between px-4")}>
-        <div className={cn("flex min-w-0 items-center gap-2.5", collapsed && "justify-center")}>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-primary-foreground">
-            <MapPinned className="h-4 w-4" />
-          </div>
-          {!collapsed && (
-            <span className="truncate font-display text-[14.5px] font-bold tracking-tight text-sidebar-foreground">
-              Observatório Grilagem de Terras
-            </span>
-          )}
-        </div>
-        {!collapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
+      <div
+        className={cn(
+          "flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border/70",
+          collapsed ? "justify-center px-0" : "justify-between px-4",
+        )}
+      >
+        {collapsed ? (
+          <button
+            type="button"
             onClick={onToggle}
-            className="h-7 w-7 shrink-0 rounded-none text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            title="Expandir menu"
+            className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-primary-foreground transition-colors hover:bg-primary/85"
           >
-            <PanelLeft className="h-4 w-4" />
-          </Button>
+            <MapPinned className="h-4 w-4" />
+          </button>
+        ) : (
+          <>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-primary-foreground">
+                <MapPinned className="h-4 w-4" />
+              </div>
+              <span className="truncate font-display text-[14.5px] font-bold tracking-tight text-sidebar-foreground">
+                Observatório Grilagem de Terras
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggle}
+              title="Recolher menu"
+              className="h-7 w-7 shrink-0 rounded-none text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
 
@@ -128,7 +137,13 @@ export function AppSidebar({
       </nav>
 
       <div className="shrink-0 border-t border-sidebar-border/70 p-3">
-        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarFile} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={handleAvatarFile}
+        />
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -150,7 +165,9 @@ export function AppSidebar({
                 {!collapsed && (
                   <>
                     <div className="min-w-0 flex-1 leading-tight">
-                      <p className="truncate text-[13px] font-semibold text-sidebar-foreground">{user?.nome}</p>
+                      <p className="truncate text-[13px] font-semibold text-sidebar-foreground">
+                        {user?.nome}
+                      </p>
                       <p className="truncate text-[11.5px] text-sidebar-foreground/50">
                         {user ? ROLE_LABEL[user.role] : ""}
                       </p>

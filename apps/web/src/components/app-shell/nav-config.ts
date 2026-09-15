@@ -1,5 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, LayoutGrid, Map, ShieldAlert, Database, Users, FileText } from "lucide-react";
+import {
+  ArrowLeftRight,
+  LayoutGrid,
+  Map,
+  ShieldAlert,
+  Database,
+  Users,
+  FileText,
+  Landmark,
+} from "lucide-react";
 import type { Permission } from "@geo/shared";
 
 export interface NavItem {
@@ -38,6 +47,13 @@ export const NAV_ITEMS: NavItem[] = [
     subtitle: "Operações de entrada e saída de dados espaciais",
     icon: ArrowLeftRight,
     permission: "dataset:write",
+  },
+  {
+    href: "/timeline",
+    label: "Linha do Tempo",
+    subtitle: "Marcos legais da propriedade da terra e da questão ambiental no Brasil",
+    icon: Landmark,
+    permission: "layer:read",
   },
   {
     href: "/relatorios",

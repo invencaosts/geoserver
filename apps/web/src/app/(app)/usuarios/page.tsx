@@ -35,22 +35,35 @@ export default function UsuariosPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <div className="grid gap-2.5">
-        {isLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[76px] w-full rounded-xl" />)}
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-[76px] w-full rounded-xl" />
+          ))}
 
         {users?.map((u) => {
-          const initials = u.nome.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("");
+          const initials = u.nome
+            .split(" ")
+            .slice(0, 2)
+            .map((n) => n[0]?.toUpperCase())
+            .join("");
           const isSelf = u.id === currentUser?.id;
           return (
             <Card key={u.id} className="transition-colors hover:bg-accent/30">
               <CardContent className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 ring-1 ring-border">
-                    <AvatarFallback className={cn("font-medium", ROLE_TONE[u.role])}>{initials}</AvatarFallback>
+                    <AvatarFallback className={cn("font-medium", ROLE_TONE[u.role])}>
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{u.nome}</p>
-                      {isSelf && <Badge variant="secondary" className="text-[10px] font-normal">você</Badge>}
+                      {isSelf && (
+                        <Badge variant="secondary" className="text-[10px] font-normal">
+                          você
+                        </Badge>
+                      )}
                       {u.roleApprovalStatus === "pendente" && (
                         <Badge className="bg-amber-500/15 text-[10px] font-normal text-amber-600">
                           solicitou {ROLE_LABEL[u.requestedRole]}
@@ -87,7 +100,10 @@ export default function UsuariosPage() {
                     value={u.role}
                     disabled={isSelf}
                     onValueChange={(role) => updateUser.mutate({ id: u.id, data: { role } })}
-                    options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value: value as RoleName, label }))}
+                    options={Object.entries(ROLE_LABEL).map(([value, label]) => ({
+                      value: value as RoleName,
+                      label,
+                    }))}
                   />
 
                   <div className="flex items-center gap-2 rounded-lg border border-border/60 px-2.5 py-1.5">
@@ -95,10 +111,18 @@ export default function UsuariosPage() {
                       checked={u.status === "ativo"}
                       disabled={isSelf}
                       onCheckedChange={(checked) =>
-                        updateUser.mutate({ id: u.id, data: { status: checked ? "ativo" : "inativo" } })
+                        updateUser.mutate({
+                          id: u.id,
+                          data: { status: checked ? "ativo" : "inativo" },
+                        })
                       }
                     />
-                    <span className={cn("text-xs font-medium", u.status === "ativo" ? "text-emerald-500" : "text-muted-foreground")}>
+                    <span
+                      className={cn(
+                        "text-xs font-medium",
+                        u.status === "ativo" ? "text-emerald-500" : "text-muted-foreground",
+                      )}
+                    >
                       {u.status === "ativo" ? "Ativo" : "Inativo"}
                     </span>
                   </div>

@@ -12,6 +12,7 @@ import { CasesModule } from "./cases/cases.module";
 import { ReportsModule } from "./reports/reports.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { InstituicoesModule } from "./instituicoes/instituicoes.module";
+import { TimelineModule } from "./timeline/timeline.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InstituicoesModule } from "./instituicoes/instituicoes.module";
     ReportsModule,
     NotificationsModule,
     InstituicoesModule,
+    TimelineModule,
   ],
   controllers: [AppController],
 })

@@ -1,6 +1,12 @@
 "use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export interface SelectFieldOption<T extends string> {
@@ -41,7 +47,9 @@ export function SelectField<T extends string>({
       disabled={disabled}
     >
       <SelectTrigger id={id} className={cn("w-full", className)}>
-        <SelectValue>{(v: string | null) => (v ? (labelByValue[v] ?? v) : (placeholder ?? ""))}</SelectValue>
+        <SelectValue>
+          {(v: string | null) => (v ? (labelByValue[v] ?? v) : (placeholder ?? ""))}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (

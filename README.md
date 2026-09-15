@@ -6,19 +6,19 @@ Persistência real, autenticação, processamento assíncrono e banco geoespacia
 
 ## Status atual (Sprint dias 1–4 de 5)
 
-| Dia | Módulo | Status |
-|---|---|---|
-| 1 | Fundação (monorepo, Docker, Postgres+PostGIS, Auth+RBAC, shell da UI) | ✅ feito |
-| 2 | Mapa & Camadas (CRUD de camadas, MapLibre) | ✅ feito |
-| 3 | Dados Espaciais (upload → fila → parser → PostGIS) | ✅ feito |
-| 4 | Casos de Grilagem (workflow de validação + auditoria + dashboard) | ✅ feito |
-| 5 | Relatórios (✅ feito) + deploy em produção (⏳ pendente) | ⏳ em andamento |
+| Dia | Módulo                                                                | Status          |
+| --- | --------------------------------------------------------------------- | --------------- |
+| 1   | Fundação (monorepo, Docker, Postgres+PostGIS, Auth+RBAC, shell da UI) | ✅ feito        |
+| 2   | Mapa & Camadas (CRUD de camadas, MapLibre)                            | ✅ feito        |
+| 3   | Dados Espaciais (upload → fila → parser → PostGIS)                    | ✅ feito        |
+| 4   | Casos de Grilagem (workflow de validação + auditoria + dashboard)     | ✅ feito        |
+| 5   | Relatórios (✅ feito) + deploy em produção (⏳ pendente)              | ⏳ em andamento |
 
 Backlog fora do sprint de 5 dias (não iniciado): integrações externas (INCRA/CPT/IBAMA/PRODES), notificações, 2FA, rate limiting, testes automatizados, mascaramento de dados sensíveis (LGPD), tiles vetoriais reais via Martin/pg_tileserv (infra já provisionada, wiring no front ainda não feito).
 
 ## Stack
 
-- **Frontend**: Next.js 16 (App Router) + React 19 + Tailwind v4 + shadcn/ui (base-ui) + MapLibre GL + Zustand + TanStack Query
+- **Frontend**: Next.js 16 (App Router) + React 19 + Tailwind v4 + shadcn/ui (base-ui) + MapLibre GL + Zustand + TanStack Query + TimelineJS3 (self-hosted) + pdf.js
 - **Backend**: NestJS 11 + Prisma + PostgreSQL/PostGIS + BullMQ (filas) + MinIO (arquivos) + Passport/JWT
 - **Infra local**: Docker Compose (postgres+postgis, redis, minio, martin)
 - **Monorepo**: pnpm workspaces (`apps/web`, `apps/api`, `packages/shared`)
@@ -41,8 +41,11 @@ apps/
     src/cases/          # casos de grilagem, workflow, dashboard
     src/reports/        # exportação de relatórios (CSV/PDF) de casos e datasets
     src/users/          # gestão de usuários/papéis
+    src/timeline/       # linha do tempo de marcos legais (público + CRUD admin)
     src/storage/        # cliente MinIO
     src/queue/          # config BullMQ
+    prisma/seed-timeline.ts       # seed inicial da linha do tempo (rodar manualmente, ver COMO_RODAR.md)
+    prisma/seed-instituicoes.ts   # seed inicial de instituições INEP (rodar manualmente, ver COMO_RODAR.md)
 packages/
   shared/               # tipos e permissões compartilhados entre web e api
 docker-compose.yml      # postgres+postgis, redis, minio, martin (dev)
@@ -56,77 +59,19 @@ docker-compose.yml      # postgres+postgis, redis, minio, martin (dev)
 - **Casos de Grilagem**: criação de relato, workflow de status com transições restritas (`pendente → em_verificacao → validado/rejeitado`), histórico de auditoria (`case_status_history`), dashboard com KPIs e municípios mais afetados agregados no banco.
 - **Mapa**: base OSM + pontos dos casos (coloridos por prioridade) + geometrias dos datasets ativos, tudo renderizado via MapLibre a partir de dados reais da API.
 - **Relatórios**: export em CSV (lista de casos filtrável, inventário de datasets) e PDF (resumo com KPIs do dashboard + tabelas) gerados sob demanda no backend a partir de dados reais.
+- **Linha do Tempo** (`/timeline`): marcos legais da propriedade da terra e questão ambiental no Brasil, renderizados com TimelineJS3 (self-hosted). Filtro por escopo (nacional/estadual) e por estado (lista as 27 UFs, desabilitando as que ainda não têm evento cadastrado, com busca). PDFs anexados aos eventos abrem num viewer próprio (pdf.js), sem o visualizador nativo do browser. Tela de gestão (`/timeline/gerenciar`, permissão `timeline:manage` — `admin`/`verificador`) com CRUD completo (criar/editar/excluir evento, upload de PDF/imagem pro MinIO).
 
-## Rodando em desenvolvimento
-
-Pré-requisitos: Node 20+, pnpm, Docker.
-
-```bash
-# 1. instalar dependências do monorepo
-pnpm install
-
-# 2. subir serviços de infra (postgres+postgis, redis, minio, martin)
-docker compose up -d
-
-# 3. buildar o pacote compartilhado (necessário 1x, e de novo se editar packages/shared)
-pnpm --filter @geo/shared build
-
-# 4. rodar migrations do Prisma (só na primeira vez / após mudar o schema)
-cd apps/api
-npx prisma migrate dev
-
-# 5. subir API e Web (2 terminais, a partir da raiz do monorepo)
-pnpm dev:api     # http://localhost:3001/api
-pnpm dev:web     # http://localhost:3000
-```
-
-### Portas usadas (ajustadas pra não colidir com outros projetos na sua máquina)
-
-| Serviço | Porta |
-|---|---|
-| Web (Next.js) | 3000 |
-| API (NestJS) | 3001 |
-| Postgres/PostGIS | 5435 |
-| Redis | 6381 |
-| MinIO API | 9004 |
-| MinIO Console | 9005 |
-| Martin (tiles) | 3010 |
-
-### Variáveis de ambiente
-
-- `apps/api/.env` (copiar de `.env.example`): `DATABASE_URL`, `JWT_SECRET`, `MINIO_*`, `REDIS_URL`
-- `apps/web/.env.local` (copiar de `.env.example`): `NEXT_PUBLIC_API_URL`
-
-## O que testar agora
-
-1. **Criar conta** em `/login` (aba "Criar conta") — vira admin automaticamente se for o primeiro usuário.
-2. **Mapa** (`/mapa`): criar uma camada (nome, tipo, fonte), ligar/desligar visibilidade, mexer na opacidade — deve persistir ao recarregar a página.
-3. **Dados Espaciais** (`/dados`): importar um `.geojson` (mais simples de testar) ou `.csv` com colunas `lat`/`lng` — acompanhar o status mudar de "Processando" pra "Ativo", e ver os pontos aparecerem no mapa.
-4. **Casos de Grilagem** (`/casos`): criar um relato com lat/lng de teste, tentar pular etapa do workflow (deve bloquear), avançar `pendente → em_verificacao → validado`, conferir dashboard atualizando e o ponto aparecendo no mapa colorido por prioridade.
-5. **Usuários** (`/usuarios`, precisa ser admin): criar um segundo usuário com papel `leitor` ou `contribuidor`, logar com ele e confirmar que ações restritas (criar camada, validar caso) ficam bloqueadas — isso valida o RBAC de verdade, não só visualmente.
-6. **Dark mode**: alternar no ícone do header — confere se as cores/glass panels ficam legíveis nos dois temas.
-7. **Relatórios** (`/relatorios`): baixar CSV/PDF de casos (com e sem filtro de status/tipo/município) e CSV/PDF de datasets — conferir que os dados batem com `/casos` e `/dados`.
-
-Se algo quebrar: logs da API em `apps/api` (rodando via `pnpm dev:api`), logs do worker de import estão no mesmo processo da API (BullMQ roda embutido).
-
-## Rodando em produção
-
-**Ainda não implementado** — é o dia 5 do sprint (pendente). O plano é:
-
-- `docker-compose.prod.yml` com todos os serviços containerizados (web, api, postgres+postgis, redis, minio, martin) na mesma rede Docker.
-- Dockerfile multi-stage pra `apps/web` e `apps/api` (build + runtime enxuto).
-- Variáveis de ambiente de produção (JWT_SECRET forte, credenciais reais do banco/minio, `WEB_ORIGIN` pro CORS).
-- Deploy manual via `docker compose -f docker-compose.prod.yml up -d` na VPS (sem CI/CD por decisão sua).
-
-Não faça deploy do estado atual em produção: `JWT_SECRET` e senhas do banco/minio no `.env` são valores de desenvolvimento hardcoded, sem TLS, sem rate limiting.
+> Instruções de instalação, variáveis de ambiente, seeds e roteiro de teste manual: ver [`COMO_RODAR.md`](./COMO_RODAR.md).
 
 ## O que falta / próximos passos
 
 **Fechando o sprint (dia 5):**
+
 - Dockerfiles de produção + `docker-compose.prod.yml`.
 - Smoke test ponta a ponta em ambiente de produção.
 
 **Backlog pós-sprint:**
+
 - Wiring do Martin/pg_tileserv no painel de camadas (hoje as camadas são só metadados, não renderizam tiles externos reais no mapa).
 - Integrações externas (INCRA, CPT, IBAMA, PRODES) com sync agendado.
 - Notificações (e-mail/in-app) nas mudanças de status de caso.

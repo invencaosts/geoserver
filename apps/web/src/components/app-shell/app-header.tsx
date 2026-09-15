@@ -44,7 +44,9 @@ function NotificationBell() {
       />
       <DropdownMenuContent align="end" className="w-80 rounded-none p-0">
         <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Notificações</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Notificações
+          </span>
           {!!unreadCount && (
             <button
               className="flex items-center gap-1 text-[11px] text-primary hover:underline"
@@ -56,12 +58,17 @@ function NotificationBell() {
         </div>
         <ScrollArea className="max-h-80">
           {!notifications || notifications.length === 0 ? (
-            <p className="px-3 py-8 text-center text-xs text-muted-foreground">Nenhuma notificação ainda.</p>
+            <p className="px-3 py-8 text-center text-xs text-muted-foreground">
+              Nenhuma notificação ainda.
+            </p>
           ) : (
             notifications.map((n) => (
               <DropdownMenuItem
                 key={n.id}
-                className={cn("flex-col items-start gap-0.5 whitespace-normal py-2.5", !n.lida && "bg-accent/40")}
+                className={cn(
+                  "flex-col items-start gap-0.5 whitespace-normal py-2.5",
+                  !n.lida && "bg-accent/40",
+                )}
                 onClick={() => !n.lida && markRead.mutate(n.id)}
               >
                 <div className="flex w-full items-center justify-between gap-2">

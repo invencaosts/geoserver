@@ -29,7 +29,9 @@ export class CasesService {
     return this.prisma.case.findMany({
       where: {
         status: filters.status,
-        municipio: filters.municipio ? { equals: filters.municipio, mode: "insensitive" } : undefined,
+        municipio: filters.municipio
+          ? { equals: filters.municipio, mode: "insensitive" }
+          : undefined,
         tipo: filters.tipo as any,
       },
       orderBy: { createdAt: "desc" },
@@ -145,9 +147,7 @@ export class CasesService {
 
     const ext = file.originalname.split(".").pop()?.toLowerCase() ?? "";
     if (!ANEXO_EXTENSOES.includes(ext)) {
-      throw new BadRequestException(
-        `Extensão .${ext} não suportada para anexo. Use .pdf ou .kmz`,
-      );
+      throw new BadRequestException(`Extensão .${ext} não suportada para anexo. Use .pdf ou .kmz`);
     }
 
     const key = `cases/${id}/${randomUUID()}.${ext}`;
@@ -177,8 +177,7 @@ export class CasesService {
       }),
     ]);
 
-    const count = (status: CaseStatus) =>
-      porStatus.find((s) => s.status === status)?._count ?? 0;
+    const count = (status: CaseStatus) => porStatus.find((s) => s.status === status)?._count ?? 0;
 
     return {
       casosAtivos: count("pendente") + count("em_verificacao"),

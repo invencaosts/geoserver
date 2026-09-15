@@ -255,3 +255,36 @@ model CaseStatusHistory {
   @@index([caseId])
   @@map("case_status_history")
 }
+
+enum TimelineEscopo {
+  nacional
+  estadual
+}
+
+model TimelineEvent {
+  id           String         @id @default(cuid())
+  escopo       TimelineEscopo
+  estado       String?
+  startYear    Int?
+  startMonth   Int?
+  startDay     Int?
+  endYear      Int?
+  endMonth     Int?
+  endDay       Int?
+  displayDate  String?
+  headline     String
+  text         String         @db.Text
+  mediaUrl     String?
+  mediaCredit  String?
+  mediaCaption String?
+  mediaThumb   String?
+  type         String?
+  background   String?
+  order        Int            @default(autoincrement())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([estado])
+  @@index([escopo])
+  @@map("timeline_events")
+}

@@ -1,15 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, Database, Download, FolderOpen, RefreshCw, Trash2, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Database,
+  Download,
+  FolderOpen,
+  RefreshCw,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useDatasets, useDeleteDataset, useUploadDataset, datasetExportUrl } from "@/lib/queries/datasets";
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  useDatasets,
+  useDeleteDataset,
+  useUploadDataset,
+  datasetExportUrl,
+} from "@/lib/queries/datasets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -44,13 +66,20 @@ export default function DadosPage() {
         <div className="flex gap-6">
           <Metric label="Datasets" value={datasets?.length ?? 0} loading={isLoading} />
           <Metric label="Ativos" value={ativos} loading={isLoading} />
-          <Metric label="Registros" value={totalRegistros.toLocaleString("pt-BR")} loading={isLoading} />
+          <Metric
+            label="Registros"
+            value={totalRegistros.toLocaleString("pt-BR")}
+            loading={isLoading}
+          />
         </div>
         <UploadDialog />
       </div>
 
       <div className="grid gap-2.5">
-        {isLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[76px] w-full rounded-xl" />)}
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-[76px] w-full rounded-xl" />
+          ))}
 
         {!isLoading && datasets?.length === 0 && (
           <Card>
@@ -60,7 +89,9 @@ export default function DadosPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium">Nenhum dataset importado ainda</p>
-                <p className="text-xs text-muted-foreground">Importe um Shapefile, GeoJSON, KML ou CSV pra começar.</p>
+                <p className="text-xs text-muted-foreground">
+                  Importe um Shapefile, GeoJSON, KML ou CSV pra começar.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -73,8 +104,19 @@ export default function DadosPage() {
             <Card key={d.id} className="transition-colors hover:bg-accent/30">
               <CardContent className="flex items-center justify-between gap-4 px-4 py-3.5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", tone.chip)}>
-                    <Icon className={cn("h-[18px] w-[18px]", tone.icon, d.status === "processing" && "animate-spin")} />
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                      tone.chip,
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-[18px] w-[18px]",
+                        tone.icon,
+                        d.status === "processing" && "animate-spin",
+                      )}
+                    />
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{d.nome}</p>
@@ -85,8 +127,18 @@ export default function DadosPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Badge variant="outline" className="font-normal">{d.formato}</Badge>
-                  <Badge variant={d.status === "error" ? "destructive" : d.status === "active" ? "default" : "secondary"}>
+                  <Badge variant="outline" className="font-normal">
+                    {d.formato}
+                  </Badge>
+                  <Badge
+                    variant={
+                      d.status === "error"
+                        ? "destructive"
+                        : d.status === "active"
+                          ? "default"
+                          : "secondary"
+                    }
+                  >
                     {STATUS_LABEL[d.status]}
                   </Badge>
                   {d.status === "active" && (
@@ -101,7 +153,12 @@ export default function DadosPage() {
                       }
                     />
                   )}
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteDataset.mutate(d.id)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => deleteDataset.mutate(d.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -114,14 +171,26 @@ export default function DadosPage() {
   );
 }
 
-function Metric({ label, value, loading }: { label: string; value: string | number; loading: boolean }) {
+function Metric({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: string | number;
+  loading: boolean;
+}) {
   return (
     <div className="flex items-center gap-2.5">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Database className="h-4 w-4" />
       </div>
       <div className="leading-tight">
-        {loading ? <Skeleton className="h-5 w-8" /> : <p className="text-lg font-semibold">{value}</p>}
+        {loading ? (
+          <Skeleton className="h-5 w-8" />
+        ) : (
+          <p className="text-lg font-semibold">{value}</p>
+        )}
         <p className="text-[11px] text-muted-foreground">{label}</p>
       </div>
     </div>
@@ -150,36 +219,48 @@ function UploadDialog() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={<Button className="gap-2"><Upload className="h-4 w-4" />Importar</Button>} />
+      <SheetTrigger
+        render={
+          <Button className="gap-2">
+            <Upload className="h-4 w-4" />
+            Importar
+          </Button>
+        }
+      />
       <SheetContent>
         <SheetHeader eyebrow="Dados espaciais · nova importação">
           <SheetTitle>Importar dados espaciais</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-        <SheetBody className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="dataset-nome">Nome do dataset</Label>
-            <Input id="dataset-nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dataset-arquivo">Arquivo</Label>
-            <Input
-              id="dataset-arquivo"
-              type="file"
-              accept=".zip,.geojson,.json,.kml,.csv"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Shapefile: envie um .zip contendo .shp/.dbf/.shx. CSV precisa de colunas lat/lng.
-            </p>
-          </div>
-        </SheetBody>
-        <SheetFooter>
-          <Button type="submit" className="w-full" disabled={upload.isPending}>
-            {upload.isPending ? "Enviando..." : "Importar"}
-          </Button>
-        </SheetFooter>
+          <SheetBody className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="dataset-nome">Nome do dataset</Label>
+              <Input
+                id="dataset-nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dataset-arquivo">Arquivo</Label>
+              <Input
+                id="dataset-arquivo"
+                type="file"
+                accept=".zip,.geojson,.json,.kml,.csv"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Shapefile: envie um .zip contendo .shp/.dbf/.shx. CSV precisa de colunas lat/lng.
+              </p>
+            </div>
+          </SheetBody>
+          <SheetFooter>
+            <Button type="submit" className="w-full" disabled={upload.isPending}>
+              {upload.isPending ? "Enviando..." : "Importar"}
+            </Button>
+          </SheetFooter>
         </form>
       </SheetContent>
     </Sheet>

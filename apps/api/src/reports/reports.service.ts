@@ -88,7 +88,9 @@ export class ReportsService {
     doc.moveDown(0.5);
     doc.fontSize(9);
     for (const c of casos) {
-      doc.text(`${c.nome} — ${c.municipio}/${c.estado} — ${c.tipo} — ${c.status} — prioridade ${c.prioridade}`);
+      doc.text(
+        `${c.nome} — ${c.municipio}/${c.estado} — ${c.tipo} — ${c.status} — prioridade ${c.prioridade}`,
+      );
     }
 
     doc.end();

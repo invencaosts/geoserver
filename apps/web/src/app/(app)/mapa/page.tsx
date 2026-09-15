@@ -66,10 +66,14 @@ export default function MapaPage() {
             "circle-color": [
               "match",
               ["get", "prioridade"],
-              "critica", PRIORIDADE_COLOR.critica,
-              "alta", PRIORIDADE_COLOR.alta,
-              "media", PRIORIDADE_COLOR.media,
-              "baixa", PRIORIDADE_COLOR.baixa,
+              "critica",
+              PRIORIDADE_COLOR.critica,
+              "alta",
+              PRIORIDADE_COLOR.alta,
+              "media",
+              PRIORIDADE_COLOR.media,
+              "baixa",
+              PRIORIDADE_COLOR.baixa,
               "#94a3b8",
             ],
             "circle-stroke-width": 2,
@@ -88,7 +92,7 @@ export default function MapaPage() {
           if (!feature || feature.geometry.type !== "Point") return;
           const { nome, tipo, prioridade, status } = feature.properties as Record<string, string>;
           new maplibregl.Popup({ closeButton: true, offset: 10 })
-            .setLngLat((feature.geometry.coordinates as [number, number]))
+            .setLngLat(feature.geometry.coordinates as [number, number])
             .setHTML(
               `<div style="font-size:12.5px;line-height:1.5">
                 <strong>${nome}</strong><br/>
@@ -117,7 +121,10 @@ export default function MapaPage() {
               geojson.features[0].geometry.coordinates as [number, number],
             ),
           );
-          map.fitBounds(bounds, { padding: { top: 100, right: 100, bottom: 100, left: 620 }, maxZoom: 12 });
+          map.fitBounds(bounds, {
+            padding: { top: 100, right: 100, bottom: 100, left: 620 },
+            maxZoom: 12,
+          });
         }
       }
     };
@@ -142,14 +149,24 @@ export default function MapaPage() {
         map.addSource(sourceId, { type: "geojson", data: geojson as any });
         map.addLayer({
           id: `${sourceId}-layer`,
-          type: dataset.tipoGeometria === "Polygon" ? "fill" : dataset.tipoGeometria === "Line" ? "line" : "circle",
+          type:
+            dataset.tipoGeometria === "Polygon"
+              ? "fill"
+              : dataset.tipoGeometria === "Line"
+                ? "line"
+                : "circle",
           source: sourceId,
           paint:
             dataset.tipoGeometria === "Polygon"
               ? { "fill-color": "#22c55e", "fill-opacity": 0.35, "fill-outline-color": "#16a34a" }
               : dataset.tipoGeometria === "Line"
                 ? { "line-color": "#3b82f6", "line-width": 2 }
-                : { "circle-radius": 5, "circle-color": "#3b82f6", "circle-stroke-width": 1, "circle-stroke-color": "#fff" },
+                : {
+                    "circle-radius": 5,
+                    "circle-color": "#3b82f6",
+                    "circle-stroke-width": 1,
+                    "circle-stroke-color": "#fff",
+                  },
         } as maplibregl.LayerSpecification);
       };
 

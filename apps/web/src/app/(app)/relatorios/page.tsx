@@ -33,7 +33,9 @@ export default function RelatoriosPage() {
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <div>
         <h1 className="text-lg font-semibold">Relatórios</h1>
-        <p className="text-sm text-muted-foreground">Exportação dos dados de casos e datasets em CSV ou PDF.</p>
+        <p className="text-sm text-muted-foreground">
+          Exportação dos dados de casos e datasets em CSV ou PDF.
+        </p>
       </div>
 
       {canReadCasos && <CasosReportCard />}
@@ -71,7 +73,10 @@ function CasosReportCard() {
             <SelectField
               value={status}
               onValueChange={setStatus}
-              options={[{ value: "all", label: "Todos" }, ...Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label }))]}
+              options={[
+                { value: "all", label: "Todos" },
+                ...Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
+              ]}
             />
           </div>
           <div className="space-y-1.5">
@@ -79,12 +84,20 @@ function CasosReportCard() {
             <SelectField
               value={tipo}
               onValueChange={setTipo}
-              options={[{ value: "all", label: "Todos" }, ...Object.entries(TIPO_LABEL).map(([value, label]) => ({ value, label }))]}
+              options={[
+                { value: "all", label: "Todos" },
+                ...Object.entries(TIPO_LABEL).map(([value, label]) => ({ value, label })),
+              ]}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="rel-municipio">Município</Label>
-            <Input id="rel-municipio" value={municipio} onChange={(e) => setMunicipio(e.target.value)} placeholder="Todos" />
+            <Input
+              id="rel-municipio"
+              value={municipio}
+              onChange={(e) => setMunicipio(e.target.value)}
+              placeholder="Todos"
+            />
           </div>
         </div>
 
@@ -126,7 +139,9 @@ function DatasetsReportCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">Inventário completo dos datasets importados.</p>
+        <p className="text-sm text-muted-foreground">
+          Inventário completo dos datasets importados.
+        </p>
         <div className="flex gap-2">
           <Button
             variant="outline"

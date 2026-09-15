@@ -1,8 +1,4 @@
-import {
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
-} from "class-validator";
+import { registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
 function isValidCpf(raw: string): boolean {
   const cpf = raw.replace(/\D/g, "");

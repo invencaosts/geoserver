@@ -13,6 +13,7 @@ export const PERMISSIONS = [
   "case:create",
   "case:validate",
   "user:manage",
+  "timeline:manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -26,6 +27,7 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     "case:read",
     "case:create",
     "case:validate",
+    "timeline:manage",
   ],
   contribuidor: ["layer:read", "dataset:read", "case:read", "case:create"],
   leitor: ["layer:read", "dataset:read", "case:read"],
@@ -123,11 +125,7 @@ export const CASE_TIPO_LABEL: Record<CaseTipo, string> = {
 
 export type CasePrioridade = "baixa" | "media" | "alta" | "critica";
 
-export type CaseStatus =
-  | "pendente"
-  | "em_verificacao"
-  | "validado"
-  | "rejeitado";
+export type CaseStatus = "pendente" | "em_verificacao" | "validado" | "rejeitado";
 
 export interface CaseDTO {
   id: string;
@@ -160,9 +158,7 @@ export interface CaseStatusHistoryDTO {
 }
 
 export type NotificationTipo =
-  | "contribuicao_aceita"
-  | "contribuicao_retorno"
-  | "novo_caso_area_interesse";
+  "contribuicao_aceita" | "contribuicao_retorno" | "novo_caso_area_interesse";
 
 export const NOTIFICATION_TIPO_LABEL: Record<NotificationTipo, string> = {
   contribuicao_aceita: "Contribuição aceita",
@@ -192,4 +188,62 @@ export interface InstituicaoDTO {
 
 export function hasPermission(role: RoleName, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}
+
+export type TimelineEscopo = "nacional" | "estadual";
+
+export interface TimelineDate {
+  year: number;
+  month?: number;
+  day?: number;
+}
+
+export interface TimelineJsMedia {
+  url?: string;
+  credit?: string;
+  caption?: string;
+  thumbnail?: string;
+}
+
+export interface TimelineJsEvent {
+  unique_id: string;
+  start_date: TimelineDate;
+  end_date?: TimelineDate;
+  display_date?: string;
+  text: { headline: string; text: string };
+  media?: TimelineJsMedia;
+  group?: string;
+  background?: { url?: string };
+}
+
+export interface TimelineJsonDTO {
+  title?: {
+    text: { headline: string; text: string };
+    media?: TimelineJsMedia;
+  };
+  events: TimelineJsEvent[];
+}
+
+export interface TimelineEventDTO {
+  id: string;
+  escopo: TimelineEscopo;
+  estado?: string | null;
+  startYear: number;
+  startMonth?: number | null;
+  startDay?: number | null;
+  endYear?: number | null;
+  endMonth?: number | null;
+  endDay?: number | null;
+  displayDate?: string | null;
+  headline: string;
+  text: string;
+  mediaUrl?: string | null;
+  mediaCredit?: string | null;
+  mediaCaption?: string | null;
+  mediaThumb?: string | null;
+  type?: string | null;
+  background?: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }

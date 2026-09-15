@@ -1,0 +1,112 @@
+/* Override do tema padrão (branco/cinza) do TimelineJS3 pelos tokens de cor do
+   sistema (apps/web/src/app/globals.css). Carregado depois de css/timeline.css. */
+
+.tl-timeline {
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.tl-timeline p {
+  color: var(--muted-foreground);
+}
+
+.tl-timeline a,
+.tl-timeline p a {
+  color: var(--primary);
+}
+
+.tl-timeline a:hover,
+.tl-timeline p a:hover,
+.tl-timeline p a:focus {
+  color: var(--accent-foreground);
+}
+
+/* Storyslider (slide grande com headline/texto/mídia) */
+.tl-storyslider {
+  background: var(--background);
+}
+/* TL define a cor de fundo de cada slide via style inline — precisa de !important pra vencer */
+.tl-storyslider .tl-slider-background {
+  background-color: var(--background) !important;
+}
+
+.tl-slide .tl-slide-content-container .tl-slide-content .tl-text .tl-headline-date {
+  color: var(--primary);
+}
+
+/* Setas de navegação do slide */
+.tl-slidenav-previous .tl-slidenav-content-container .tl-slidenav-icon,
+.tl-slidenav-next .tl-slidenav-content-container .tl-slidenav-icon,
+.tl-slidenav-previous .tl-slidenav-content-container .tl-slidenav-title,
+.tl-slidenav-next .tl-slidenav-content-container .tl-slidenav-title,
+.tl-slidenav-previous .tl-slidenav-content-container .tl-slidenav-description,
+.tl-slidenav-next .tl-slidenav-content-container .tl-slidenav-description {
+  color: var(--foreground);
+  text-shadow: none;
+}
+.tl-slidenav-previous:hover .tl-slidenav-icon,
+.tl-slidenav-next:hover .tl-slidenav-icon {
+  color: var(--primary);
+}
+
+/* Timenav (trilha inferior com os marcadores) */
+.tl-timenav {
+  background-color: var(--card);
+  border-top: 1px solid var(--border);
+}
+.tl-timenav .tl-timenav-line {
+  background-color: var(--border);
+}
+.tl-timenav .tl-timenav-line:before,
+.tl-timenav .tl-timenav-line:after {
+  color: var(--primary);
+}
+
+.tl-timegroup {
+  background-color: var(--card);
+}
+.tl-timegroup.tl-timegroup-alternate {
+  background-color: var(--muted);
+}
+.tl-timegroup .tl-timegroup-message {
+  color: var(--muted-foreground);
+  text-shadow: none;
+}
+
+.tl-timeaxis-background {
+  background-color: var(--card);
+  border-top: 1px solid var(--border);
+}
+.tl-timeaxis .tl-timeaxis-content-container .tl-timeaxis-major,
+.tl-timeaxis .tl-timeaxis-content-container .tl-timeaxis-minor {
+  color: var(--muted-foreground);
+}
+
+/* Marcadores de evento na trilha */
+.tl-timemarker .tl-timemarker-content-container {
+  background-color: var(--secondary);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.tl-timemarker .tl-timemarker-timespan {
+  background-color: var(--accent);
+}
+.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container {
+  background-color: var(--accent);
+  border-color: var(--primary);
+}
+
+/* Menu / mensagens de carregamento */
+.tl-menubar-button {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+.tl-message-full {
+  background-color: var(--background);
+  color: var(--muted-foreground);
+}
+
+/* Marca "Made with TimelineJS" — discreta, sem fundo branco */
+.tl-timeline .tl-attribution {
+  background: transparent;
+}

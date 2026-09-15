@@ -30,9 +30,21 @@ function formatCpf(value: string) {
 }
 
 const HIGHLIGHTS = [
-  { icon: MapPinned, title: "Mapa territorial em tempo real", desc: "Camadas geoespaciais e casos plotados sobre PostGIS" },
-  { icon: Database, title: "Dados que chegam prontos", desc: "Shapefile, GeoJSON, KML, KMZ, CSV e PDF processados automaticamente" },
-  { icon: ShieldCheck, title: "Acesso sob controle", desc: "Workflow de validação com auditoria e papéis de acesso" },
+  {
+    icon: MapPinned,
+    title: "Mapa territorial em tempo real",
+    desc: "Camadas geoespaciais e casos plotados sobre PostGIS",
+  },
+  {
+    icon: Database,
+    title: "Dados que chegam prontos",
+    desc: "Shapefile, GeoJSON, KML, KMZ, CSV e PDF processados automaticamente",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Acesso sob controle",
+    desc: "Workflow de validação com auditoria e papéis de acesso",
+  },
 ];
 
 export default function LoginPage() {
@@ -65,7 +77,9 @@ export default function LoginPage() {
           cpf,
           senha,
           role,
-          perfilContribuidor: precisaPerfil ? (perfilContribuidor as PerfilContribuidor) : undefined,
+          perfilContribuidor: precisaPerfil
+            ? (perfilContribuidor as PerfilContribuidor)
+            : undefined,
           quemRepresenta: precisaPerfil ? quemRepresenta : undefined,
         });
       }
@@ -107,7 +121,8 @@ export default function LoginPage() {
               Observatório Grilagem de Terras Ariovaldo Umbelino de Oliveira
             </h2>
             <p className="text-sm leading-relaxed text-white/50">
-              Uma plataforma única pra registrar, validar e acompanhar ocorrências com dados georreferenciados de verdade.
+              Uma plataforma única pra registrar, validar e acompanhar ocorrências com dados
+              georreferenciados de verdade.
             </p>
           </div>
 
@@ -163,11 +178,20 @@ export default function LoginPage() {
               <>
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome</Label>
-                  <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+                  <Input
+                    id="nome"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nomeSocial">Nome social (opcional)</Label>
-                  <Input id="nomeSocial" value={nomeSocial} onChange={(e) => setNomeSocial(e.target.value)} />
+                  <Input
+                    id="nomeSocial"
+                    value={nomeSocial}
+                    onChange={(e) => setNomeSocial(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cpf">CPF</Label>
@@ -226,10 +250,12 @@ export default function LoginPage() {
                         value={perfilContribuidor}
                         onValueChange={setPerfilContribuidor}
                         placeholder="Selecione"
-                        options={Object.entries(PERFIL_CONTRIBUIDOR_LABEL).map(([value, label]) => ({
-                          value: value as PerfilContribuidor,
-                          label,
-                        }))}
+                        options={Object.entries(PERFIL_CONTRIBUIDOR_LABEL).map(
+                          ([value, label]) => ({
+                            value: value as PerfilContribuidor,
+                            label,
+                          }),
+                        )}
                       />
                     </div>
                     <div className="space-y-2">

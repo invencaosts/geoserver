@@ -87,7 +87,11 @@ export default function PerfilPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="p-nome-social">Nome social</Label>
-            <Input id="p-nome-social" value={nomeSocial} onChange={(e) => setNomeSocial(e.target.value)} />
+            <Input
+              id="p-nome-social"
+              value={nomeSocial}
+              onChange={(e) => setNomeSocial(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="p-telefone">Telefone</Label>
@@ -103,7 +107,11 @@ export default function PerfilPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="p-instituicao">Instituição</Label>
-            <Input id="p-instituicao" value={instituicao} onChange={(e) => setInstituicao(e.target.value)} />
+            <Input
+              id="p-instituicao"
+              value={instituicao}
+              onChange={(e) => setInstituicao(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="p-endereco">Endereço</Label>
@@ -143,7 +151,9 @@ export default function PerfilPage() {
               }}
               placeholder="Ex: Português, Guarani..."
             />
-            <Button type="button" variant="outline" onClick={addIdioma}>Adicionar</Button>
+            <Button type="button" variant="outline" onClick={addIdioma}>
+              Adicionar
+            </Button>
           </div>
         </CardContent>
       </Card>

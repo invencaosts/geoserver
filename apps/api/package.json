@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed:instituicoes": "ts-node -r tsconfig-paths/register prisma/seed-instituicoes.ts"
+    "seed:instituicoes": "ts-node -r tsconfig-paths/register prisma/seed-instituicoes.ts",
+    "seed:timeline": "ts-node -r tsconfig-paths/register prisma/seed-timeline.ts"
   },
   "dependencies": {
     "@geo/shared": "workspace:*",
@@ -46,7 +47,8 @@
     "pdfkit": "^0.19.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "shpjs": "^6.1.0"
+    "shpjs": "^6.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

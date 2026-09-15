@@ -33,13 +33,25 @@ export class NotificationsService {
     });
   }
 
-  create(userId: string, tipo: NotificationTipo, titulo: string, mensagem: string, caseId?: string) {
+  create(
+    userId: string,
+    tipo: NotificationTipo,
+    titulo: string,
+    mensagem: string,
+    caseId?: string,
+  ) {
     return this.prisma.notification.create({
       data: { userId, tipo, titulo, mensagem, caseId },
     });
   }
 
-  async notifyAreaInteresse(tipo: CaseTipo, caseId: string, titulo: string, mensagem: string, excludeUserId: string) {
+  async notifyAreaInteresse(
+    tipo: CaseTipo,
+    caseId: string,
+    titulo: string,
+    mensagem: string,
+    excludeUserId: string,
+  ) {
     const interessados = await this.prisma.user.findMany({
       where: {
         id: { not: excludeUserId },

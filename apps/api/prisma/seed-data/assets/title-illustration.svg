@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540">
+  <defs>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="noise"/>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.025 0"/>
+      <feComposite operator="over" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- parchment ground -->
+  <rect width="960" height="540" fill="#f2ead9"/>
+  <rect x="10" y="10" width="940" height="520" fill="none" stroke="#c8b98f" stroke-width="2"/>
+
+  <!-- faint contour lines, terrain texture -->
+  <g fill="none" stroke="#a9781f" stroke-opacity="0.18" stroke-width="1.5">
+    <path d="M -20 90 C 180 40, 380 140, 600 80 S 980 60, 1020 110"/>
+    <path d="M -20 150 C 200 100, 360 200, 620 150 S 960 120, 1020 170"/>
+    <path d="M -20 430 C 220 480, 420 400, 660 460 S 980 500, 1020 450"/>
+    <path d="M -20 470 C 240 510, 440 460, 680 510 S 960 470, 1020 500"/>
+  </g>
+
+  <!-- legit boundary: moss, solid, closed parcel -->
+  <polygon points="330,150 560,170 610,340 420,400 300,320"
+           fill="#4c6b4a" fill-opacity="0.07" stroke="#4c6b4a" stroke-width="3"/>
+
+  <!-- intruding claim: grilagem, terracota dashed, overlapping offset parcel -->
+  <polygon points="420,120 660,175 640,360 470,410 400,260"
+           fill="#8a3b1f" fill-opacity="0.05" stroke="#8a3b1f" stroke-width="3" stroke-dasharray="10 8"/>
+
+  <!-- marco (boundary marker stones) at legit parcel vertices -->
+  <g stroke="#4c6b4a" stroke-width="2.5" fill="#f2ead9">
+    <g transform="translate(330,150)"><circle r="7"/><line x1="0" y1="-14" x2="0" y2="-7"/></g>
+    <g transform="translate(560,170)"><circle r="7"/><line x1="0" y1="-14" x2="0" y2="-7"/></g>
+    <g transform="translate(610,340)"><circle r="7"/><line x1="0" y1="-14" x2="0" y2="-7"/></g>
+    <g transform="translate(420,400)"><circle r="7"/><line x1="0" y1="-14" x2="0" y2="-7"/></g>
+    <g transform="translate(300,320)"><circle r="7"/><line x1="0" y1="-14" x2="0" y2="-7"/></g>
+  </g>
+
+  <!-- contested marker, terracota, larger / emphasized where the two parcels overlap -->
+  <g transform="translate(470,215)">
+    <circle r="13" fill="#8a3b1f"/>
+    <circle r="13" fill="none" stroke="#f2ead9" stroke-width="2"/>
+    <line x1="0" y1="-24" x2="0" y2="-13" stroke="#8a3b1f" stroke-width="3"/>
+  </g>
+
+  <!-- surveyor's scale bar, bottom left -->
+  <g transform="translate(60,470)" font-family="Georgia, serif" font-size="13" fill="#6d6752">
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#6d6752" stroke-width="2"/>
+    <line x1="0" y1="-6" x2="0" y2="6" stroke="#6d6752" stroke-width="2"/>
+    <line x1="60" y1="-4" x2="60" y2="4" stroke="#6d6752" stroke-width="2"/>
+    <line x1="120" y1="-6" x2="120" y2="6" stroke="#6d6752" stroke-width="2"/>
+    <text x="0" y="22">0</text>
+    <text x="105" y="22">1 légua</text>
+  </g>
+
+  <!-- compass rose, top right -->
+  <g transform="translate(860,80)" stroke="#a9781f" fill="none" stroke-width="2">
+    <circle r="34"/>
+    <line x1="0" y1="-34" x2="0" y2="34"/>
+    <line x1="-34" y1="0" x2="34" y2="0"/>
+    <path d="M0,-34 L7,-10 L0,-16 L-7,-10 Z" fill="#a9781f" stroke="none"/>
+    <text x="0" y="-42" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#a9781f" stroke="none">N</text>
+  </g>
+
+  <rect width="960" height="540" fill="transparent" filter="url(#grain)"/>
+</svg>

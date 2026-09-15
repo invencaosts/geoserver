@@ -5,6 +5,11 @@
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,js,jsx,json,css}\" \"packages/**/*.{ts,tsx,js,json}\" \"*.{json,md}\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,js,jsx,json,css}\" \"packages/**/*.{ts,tsx,js,json}\" \"*.{json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
   }
 }

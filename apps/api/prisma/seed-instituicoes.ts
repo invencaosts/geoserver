@@ -23,7 +23,13 @@ async function main() {
     .pipe(createGunzip())
     .pipe(parse({ columns: true }));
 
-  let batch: { nome: string; municipio: string; uf: string; tipo: "educacao_basica" | "educacao_superior"; dependencia: string | null }[] = [];
+  let batch: {
+    nome: string;
+    municipio: string;
+    uf: string;
+    tipo: "educacao_basica" | "educacao_superior";
+    dependencia: string | null;
+  }[] = [];
   let total = 0;
 
   for await (const row of parser) {

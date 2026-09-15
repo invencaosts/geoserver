@@ -46,7 +46,9 @@ function parseCsvBuffer(buffer: Buffer): ParsedResult {
   const latKey = findKey(rows[0], LAT_KEYS);
   const lngKey = findKey(rows[0], LNG_KEYS);
   if (!latKey || !lngKey) {
-    throw new Error("CSV precisa de colunas de latitude/longitude (lat/lng, latitude/longitude, x/y)");
+    throw new Error(
+      "CSV precisa de colunas de latitude/longitude (lat/lng, latitude/longitude, x/y)",
+    );
   }
 
   const features: ParsedFeature[] = rows
@@ -75,9 +77,7 @@ function normalizeFeatureCollection(geojson: any): ParsedFeature[] {
 function parseGeoJsonBuffer(buffer: Buffer): ParsedResult {
   const geojson = JSON.parse(buffer.toString("utf-8"));
   const features = normalizeFeatureCollection(geojson);
-  const geomType = features.length
-    ? geomTypeFromGeoJsonType(features[0].geometry.type)
-    : "Point";
+  const geomType = features.length ? geomTypeFromGeoJsonType(features[0].geometry.type) : "Point";
   return { features, geomType };
 }
 
@@ -85,9 +85,7 @@ function parseKmlText(xml: string): ParsedResult {
   const dom = new DOMParser().parseFromString(xml, "text/xml");
   const geojson = kmlToGeoJson(dom as unknown as Document);
   const features = normalizeFeatureCollection(geojson);
-  const geomType = features.length
-    ? geomTypeFromGeoJsonType(features[0].geometry.type)
-    : "Point";
+  const geomType = features.length ? geomTypeFromGeoJsonType(features[0].geometry.type) : "Point";
   return { features, geomType };
 }
 
@@ -110,9 +108,7 @@ async function parseShapefileZip(buffer: Buffer): Promise<ParsedResult> {
   const result = await shp(buffer);
   const collections = Array.isArray(result) ? result : [result];
   const features = collections.flatMap((fc: any) => normalizeFeatureCollection(fc));
-  const geomType = features.length
-    ? geomTypeFromGeoJsonType(features[0].geometry.type)
-    : "Polygon";
+  const geomType = features.length ? geomTypeFromGeoJsonType(features[0].geometry.type) : "Polygon";
   return { features, geomType };
 }
 

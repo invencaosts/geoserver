@@ -1,19 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Layers as LayersIcon, Globe, Database, ImageIcon, MapPin } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Layers as LayersIcon,
+  Globe,
+  Database,
+  ImageIcon,
+  MapPin,
+} from "lucide-react";
 import type { LayerCategory, LayerType } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SelectField } from "@/components/ui/select-field";
-import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { SelectFormField, TextField } from "@/components/ui/form-fields";
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateLayer, useDeleteLayer, useLayers, useUpdateLayer } from "@/lib/queries/layers";
+import { toast } from "sonner";
 
 const TYPE_ICON: Record<LayerType, React.ElementType> = {
   WMS: Globe,
@@ -37,7 +52,9 @@ export function LayersPanel() {
 
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {isLoading &&
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
+          Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          ))}
 
         {!isLoading && layers?.length === 0 && (
           <p className="px-2 py-6 text-center text-xs text-muted-foreground">
@@ -53,7 +70,9 @@ export function LayersPanel() {
                 <div className="flex min-w-0 items-center gap-2">
                   <Switch
                     checked={layer.visivel}
-                    onCheckedChange={(visivel) => updateLayer.mutate({ id: layer.id, data: { visivel } })}
+                    onCheckedChange={(visivel) =>
+                      updateLayer.mutate({ id: layer.id, data: { visivel } })
+                    }
                   />
                   <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate text-sm font-medium">{layer.nome}</span>
@@ -69,8 +88,12 @@ export function LayersPanel() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px]">{layer.tipo}</Badge>
-                <Badge variant="outline" className="text-[10px]">{layer.categoria}</Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  {layer.tipo}
+                </Badge>
+                <Badge variant="outline" className="text-[10px]">
+                  {layer.categoria}
+                </Badge>
               </div>
 
               <div className="space-y-1">
@@ -100,6 +123,28 @@ export function LayersPanel() {
   );
 }
 
+interface LayerFormErrors {
+  nome?: string;
+  url?: string;
+  fonte?: string;
+}
+
+function validateLayerForm(nome: string, url: string, fonte: string): LayerFormErrors {
+  const errors: LayerFormErrors = {};
+  if (!nome.trim()) {
+    errors.nome = "Informe o nome da camada";
+  } else if (nome.trim().length < 2) {
+    errors.nome = "Nome muito curto (mínimo 2 caracteres)";
+  }
+  if (url.trim() && !/^https?:\/\/.+/i.test(url.trim())) {
+    errors.url = "URL deve começar com http:// ou https://";
+  }
+  if (!fonte.trim()) {
+    errors.fonte = "Informe a fonte dos dados";
+  }
+  return errors;
+}
+
 function NewLayerDialog() {
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
@@ -107,15 +152,27 @@ function NewLayerDialog() {
   const [categoria, setCategoria] = useState<LayerCategory>("overlay");
   const [url, setUrl] = useState("");
   const [fonte, setFonte] = useState("");
+  const [errors, setErrors] = useState<LayerFormErrors>({});
   const createLayer = useCreateLayer();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await createLayer.mutateAsync({ nome, tipo, categoria, url, fonte });
-    setNome("");
-    setUrl("");
-    setFonte("");
-    setOpen(false);
+    const formErrors = validateLayerForm(nome, url, fonte);
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      toast.error("Confere os campos destacados antes de salvar");
+      return;
+    }
+    try {
+      await createLayer.mutateAsync({ nome, tipo, categoria, url, fonte });
+      setNome("");
+      setUrl("");
+      setFonte("");
+      setErrors({});
+      setOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha ao criar camada");
+    }
   }
 
   return (
@@ -133,15 +190,24 @@ function NewLayerDialog() {
           <SheetTitle>Adicionar camada</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-        <SheetBody className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="layer-nome">Nome</Label>
-            <Input id="layer-nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <SelectField<LayerType>
+          <SheetBody className="space-y-4">
+            <TextField
+              id="layer-nome"
+              label="Nome"
+              info="Nome de exibição da camada no painel. Obrigatório, mínimo 2 caracteres."
+              value={nome}
+              onChange={(e) => {
+                setNome(e.target.value);
+                setErrors((prev) => ({ ...prev, nome: undefined }));
+              }}
+              error={errors.nome}
+              required
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <SelectFormField<LayerType>
+                id="layer-tipo"
+                label="Tipo"
+                info="Protocolo/formato da fonte geoespacial. WMS/WFS/WCS são serviços web; Vetor/Raster são dados já processados no sistema."
                 value={tipo}
                 onValueChange={setTipo}
                 options={[
@@ -152,10 +218,10 @@ function NewLayerDialog() {
                   { value: "Raster", label: "Raster" },
                 ]}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Categoria</Label>
-              <SelectField<LayerCategory>
+              <SelectFormField<LayerCategory>
+                id="layer-categoria"
+                label="Categoria"
+                info='Como a camada aparece agrupada no mapa: "Base" (fundo), "Overlay" (sobreposta) ou "Análise" (derivada de processamento).'
                 value={categoria}
                 onValueChange={setCategoria}
                 options={[
@@ -165,21 +231,37 @@ function NewLayerDialog() {
                 ]}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="layer-url">URL do serviço</Label>
-            <Input id="layer-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="layer-fonte">Fonte</Label>
-            <Input id="layer-fonte" value={fonte} onChange={(e) => setFonte(e.target.value)} placeholder="IBGE, INPE..." required />
-          </div>
-        </SheetBody>
-        <SheetFooter>
-          <Button type="submit" className="w-full" disabled={createLayer.isPending}>
-            Adicionar
-          </Button>
-        </SheetFooter>
+            <TextField
+              id="layer-url"
+              label="URL do serviço"
+              info="Opcional. Endereço do serviço WMS/WFS/WCS que fornece a camada. Se preenchido, precisa começar com http:// ou https://."
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setErrors((prev) => ({ ...prev, url: undefined }));
+              }}
+              error={errors.url}
+              placeholder="https://..."
+            />
+            <TextField
+              id="layer-fonte"
+              label="Fonte"
+              info="Órgão ou origem dos dados dessa camada (ex: IBGE, INPE, INCRA). Obrigatório."
+              value={fonte}
+              onChange={(e) => {
+                setFonte(e.target.value);
+                setErrors((prev) => ({ ...prev, fonte: undefined }));
+              }}
+              error={errors.fonte}
+              placeholder="IBGE, INPE..."
+              required
+            />
+          </SheetBody>
+          <SheetFooter>
+            <Button type="submit" className="w-full" disabled={createLayer.isPending}>
+              Adicionar
+            </Button>
+          </SheetFooter>
         </form>
       </SheetContent>
     </Sheet>
