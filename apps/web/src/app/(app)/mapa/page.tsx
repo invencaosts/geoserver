@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import { Search } from "lucide-react";
 import { CASE_TIPO_LABEL as TIPO_LABEL, type CaseTipo } from "@geo/shared";
 import { Input } from "@/components/ui/input";
