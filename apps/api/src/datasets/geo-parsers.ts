@@ -1,7 +1,7 @@
 import { parse as parseCsv } from "csv-parse/sync";
 import { DOMParser } from "@xmldom/xmldom";
 import { kml as kmlToGeoJson } from "@tmcw/togeojson";
-import JSZip from "jszip";
+import { inspectZipArchive } from "../common/zip-safety";
 
 // shpjs é um bundle voltado a browser (usa `self`); precisa desse polyfill pra rodar em Node.
 if (typeof (globalThis as any).self === "undefined") {
@@ -94,7 +94,7 @@ function parseKmlBuffer(buffer: Buffer): ParsedResult {
 }
 
 async function parseKmzBuffer(buffer: Buffer): Promise<ParsedResult> {
-  const zip = await JSZip.loadAsync(buffer);
+  const zip = await inspectZipArchive(buffer);
   const kmlEntry = Object.values(zip.files).find(
     (f) => !f.dir && f.name.toLowerCase().endsWith(".kml"),
   );
@@ -105,6 +105,7 @@ async function parseKmzBuffer(buffer: Buffer): Promise<ParsedResult> {
 }
 
 async function parseShapefileZip(buffer: Buffer): Promise<ParsedResult> {
+  await inspectZipArchive(buffer);
   const result = await shp(buffer);
   const collections = Array.isArray(result) ? result : [result];
   const features = collections.flatMap((fc: any) => normalizeFeatureCollection(fc));

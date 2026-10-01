@@ -15,6 +15,7 @@ import { DatasetsService } from "./datasets.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { PermissionsGuard } from "../common/permissions.guard";
 import { RequirePermissions } from "../common/permissions.decorator";
+import { DATASET_MAX_BYTES } from "../common/upload-validation";
 
 @Controller("datasets")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -51,7 +52,7 @@ export class DatasetsController {
 
   @Post()
   @RequirePermissions("dataset:write")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: DATASET_MAX_BYTES, files: 1 } }))
   create(@Body("nome") nome: string, @UploadedFile() file: Express.Multer.File) {
     return this.datasetsService.create(nome, file);
   }

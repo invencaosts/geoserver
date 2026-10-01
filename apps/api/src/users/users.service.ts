@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { MinioService } from "../storage/minio.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
+import { validateAvatarUpload } from "../common/upload-validation";
 
 const SAFE_SELECT = {
   id: true,
@@ -27,8 +28,6 @@ const SAFE_SELECT = {
   createdAt: true,
   updatedAt: true,
 } as const;
-
-const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"];
 
 @Injectable()
 export class UsersService {
@@ -92,13 +91,9 @@ export class UsersService {
 
   async updateAvatar(userId: string, file?: Express.Multer.File) {
     if (!file) throw new BadRequestException("Envie uma imagem");
-    if (!ALLOWED_MIME.includes(file.mimetype)) {
-      throw new BadRequestException("Formato inválido. Use JPEG, PNG ou WebP");
-    }
-
-    const ext = file.mimetype.split("/")[1];
-    const key = `users/${userId}/${randomUUID()}.${ext}`;
-    const avatarUrl = await this.minio.uploadAvatar(key, file.buffer, file.mimetype);
+    const validated = validateAvatarUpload(file);
+    const key = `users/${userId}/${randomUUID()}.${validated.extension}`;
+    const avatarUrl = await this.minio.uploadAvatar(key, file.buffer, validated.contentType);
 
     return this.prisma.user.update({
       where: { id: userId },

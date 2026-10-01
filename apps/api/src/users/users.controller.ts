@@ -19,6 +19,7 @@ import { PermissionsGuard } from "../common/permissions.guard";
 import { RequirePermissions } from "../common/permissions.decorator";
 import { CurrentUser } from "../common/current-user.decorator";
 import type { AuthUser } from "@geo/shared";
+import { AVATAR_MAX_BYTES } from "../common/upload-validation";
 
 @Controller("users")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -42,7 +43,7 @@ export class UsersController {
   }
 
   @Post("me/avatar")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: AVATAR_MAX_BYTES, files: 1 } }))
   updateOwnAvatar(@CurrentUser() user: AuthUser, @UploadedFile() file: Express.Multer.File) {
     return this.usersService.updateAvatar(user.id, file);
   }

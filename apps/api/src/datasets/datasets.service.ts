@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { randomUUID } from "crypto";
 import type { DatasetFormat } from "@geo/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { MinioService } from "../storage/minio.service";
+import { validateDatasetUpload } from "../common/upload-validation";
 
 const EXT_TO_FORMAT: Record<string, DatasetFormat> = {
   zip: "Shapefile",
@@ -38,8 +39,10 @@ export class DatasetsService {
     return dataset;
   }
 
-  async create(nome: string, file: Express.Multer.File) {
-    const ext = file.originalname.split(".").pop()?.toLowerCase() ?? "";
+  async create(nome: string, file?: Express.Multer.File) {
+    if (!file) throw new BadRequestException("Envie um arquivo");
+    const validated = await validateDatasetUpload(file);
+    const ext = validated.extension;
     const formato = EXT_TO_FORMAT[ext];
     if (!formato) {
       throw new Error(
@@ -59,7 +62,7 @@ export class DatasetsService {
     });
 
     const storageKey = `datasets/${dataset.id}/${file.originalname}`;
-    await this.minio.upload(storageKey, file.buffer, file.mimetype);
+    await this.minio.upload(storageKey, file.buffer, validated.contentType);
 
     await this.prisma.dataset.update({
       where: { id: dataset.id },
