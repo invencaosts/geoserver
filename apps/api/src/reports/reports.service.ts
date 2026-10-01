@@ -5,6 +5,11 @@ import PDFDocument from "pdfkit";
 import { CasesService } from "../cases/cases.service";
 import { DatasetsService } from "../datasets/datasets.service";
 
+/** Neutraliza células que planilhas interpretariam como fórmulas ao abrir o CSV. */
+export function safeCsvCell(value: string) {
+  return /^[\t\r ]*[=+\-@]/.test(value) ? `'${value}` : value;
+}
+
 @Injectable()
 export class ReportsService {
   constructor(
@@ -13,16 +18,16 @@ export class ReportsService {
   ) {}
 
   async casosCsv(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
-    const casos = await this.casesService.findAll(filters);
+    const casos = await this.casesService.findForExport(filters);
     return stringify(
       casos.map((c) => ({
-        nome: c.nome,
-        tipo: c.tipo,
-        municipio: c.municipio,
-        estado: c.estado,
-        prioridade: c.prioridade,
-        status: c.status,
-        criadoPor: c.createdBy.nome,
+        nome: safeCsvCell(c.nome),
+        tipo: safeCsvCell(c.tipo),
+        municipio: safeCsvCell(c.municipio),
+        estado: safeCsvCell(c.estado),
+        prioridade: safeCsvCell(c.prioridade),
+        status: safeCsvCell(c.status),
+        criadoPor: safeCsvCell(c.createdBy.nome),
         criadoEm: c.createdAt.toISOString(),
       })),
       {
@@ -44,7 +49,7 @@ export class ReportsService {
   async casosPdf(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
     const [dashboard, casos] = await Promise.all([
       this.casesService.getDashboard(),
-      this.casesService.findAll(filters),
+      this.casesService.findForExport(filters),
     ]);
 
     const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -101,10 +106,10 @@ export class ReportsService {
     const datasets = await this.datasetsService.findAll();
     return stringify(
       datasets.map((d) => ({
-        nome: d.nome,
-        formato: d.formato,
-        tipoGeometria: d.tipoGeometria,
-        status: d.status,
+        nome: safeCsvCell(d.nome),
+        formato: safeCsvCell(d.formato),
+        tipoGeometria: safeCsvCell(d.tipoGeometria),
+        status: safeCsvCell(d.status),
         registros: d.registros,
         criadoEm: d.createdAt.toISOString(),
       })),
