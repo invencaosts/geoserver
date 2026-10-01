@@ -1,4 +1,10 @@
-import { ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import type { AuthUser } from "@geo/shared";
@@ -29,9 +35,14 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private config: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
+    if ((this.config.get<string>("REGISTRATION_ENABLED") ?? "true").toLowerCase() !== "true") {
+      throw new ForbiddenException("Novos cadastros estão temporariamente desativados");
+    }
+
     const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existingEmail) throw new ConflictException("E-mail já cadastrado");
 
