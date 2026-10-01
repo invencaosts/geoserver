@@ -1,10 +1,12 @@
 // Carrega as planilhas de timeline (formato TimelineJS3) e os PDFs de leis/decretos/
 // constituições relacionados, publicando os PDFs no Minio e populando `timeline_events`.
 // Rodar: pnpm --filter api run seed:timeline
+import "dotenv/config";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import * as XLSX from "xlsx";
 import { PrismaClient, TimelineEscopo } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { Client as MinioClient } from "minio";
 
 const SEED_DIR = join(__dirname, "seed-data");
@@ -138,7 +140,9 @@ function isEmptyRow(row: SheetRow): boolean {
 }
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  });
   const existing = await prisma.timelineEvent.count();
   if (existing > 0) {
     console.log(`timeline_events já tem ${existing} registros, pulando seed.`);

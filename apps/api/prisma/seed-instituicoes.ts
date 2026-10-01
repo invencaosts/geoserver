@@ -1,17 +1,21 @@
 // Carrega apps/api/prisma/seed-data/instituicoes.csv.gz na tabela `instituicoes`.
 // Fonte: INEP — Censo Escolar (educação básica) + Censo da Educação Superior (IES).
 // Rodar: pnpm --filter api run seed:instituicoes
+import "dotenv/config";
 import { createReadStream } from "fs";
 import { createGunzip } from "zlib";
 import { join } from "path";
 import { parse } from "csv-parse";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const CSV_PATH = join(__dirname, "seed-data/instituicoes.csv.gz");
 const BATCH_SIZE = 5000;
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  });
   const existing = await prisma.instituicao.count();
   if (existing > 0) {
     console.log(`instituicoes já tem ${existing} registros, pulando seed.`);
