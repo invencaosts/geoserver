@@ -2,7 +2,7 @@
 
 ## Rodando em desenvolvimento
 
-Pré-requisitos: Node 20.9+, pnpm (versão fixada em `packageManager` no `package.json`; `corepack enable` resolve), Docker.
+Pré-requisitos: Node 22.12+ (ou 24+), pnpm (versão fixada em `packageManager` no `package.json`; `corepack enable` resolve), Docker.
 
 Todos os comandos abaixo rodam a partir da raiz do monorepo.
 
