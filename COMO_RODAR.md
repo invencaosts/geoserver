@@ -2,28 +2,33 @@
 
 ## Rodando em desenvolvimento
 
-Pré-requisitos: Node 20+, pnpm, Docker.
+Pré-requisitos: Node 20.9+, pnpm (versão fixada em `packageManager` no `package.json`; `corepack enable` resolve), Docker.
+
+Todos os comandos abaixo rodam a partir da raiz do monorepo.
 
 ```bash
 # 1. instalar dependências do monorepo
 pnpm install
 
-# 2. subir serviços de infra (postgres+postgis, redis, minio, martin)
+# 2. criar os arquivos de ambiente a partir dos exemplos (os valores já batem com o docker-compose)
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+
+# 3. subir serviços de infra (postgres+postgis, redis, minio, martin)
 docker compose up -d
 
-# 3. buildar o pacote compartilhado (necessário 1x, e de novo se editar packages/shared)
+# 4. buildar o pacote compartilhado (necessário 1x, e de novo se editar packages/shared)
 pnpm --filter @geo/shared build
 
-# 4. rodar migrations do Prisma (só na primeira vez / após mudar o schema)
-cd apps/api
-npx prisma migrate dev
+# 5. rodar migrations do Prisma e gerar o client (só na primeira vez / após mudar o schema)
+pnpm --filter api exec prisma migrate dev
 
-# 5. seeds iniciais — NÃO rodam sozinhos em nenhum passo acima nem em deploy,
+# 6. seeds iniciais — NÃO rodam sozinhos em nenhum passo acima nem em deploy,
 #    é preciso disparar manualmente sempre que for um banco novo/vazio
 pnpm --filter api run seed:instituicoes   # base de instituições (INEP)
 pnpm --filter api run seed:timeline       # 78 eventos da Linha do Tempo (Brasil + MG) + PDFs no MinIO
 
-# 6. subir API e Web (2 terminais, a partir da raiz do monorepo)
+# 7. subir API e Web (2 terminais)
 pnpm dev:api     # http://localhost:3001/api
 pnpm dev:web     # http://localhost:3000
 ```
@@ -44,19 +49,23 @@ Os dois seeds são idempotentes: se a tabela já tiver dado, eles pulam a carga 
 
 ### Variáveis de ambiente
 
-- `apps/api/.env` (copiar de `.env.example`): `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `MINIO_*`, `REDIS_URL`, `WEB_ORIGIN` (origem liberada no CORS — ajustar se o web não estiver em `localhost:3000`)
-- `apps/web/.env.local` (copiar de `.env.example`): `NEXT_PUBLIC_API_URL`
+- `apps/api/.env` (copiar de `apps/api/.env.example`): `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `MINIO_*`, `REDIS_URL`, `WEB_ORIGIN` (origem liberada no CORS — ajustar se o web não estiver em `localhost:3000`), `REGISTRATION_ENABLED` (`false` desativa a criação de novas contas pela tela de login; padrão `true`)
+- `apps/web/.env.local` (copiar de `apps/web/.env.example`): `NEXT_PUBLIC_API_URL`
 
-## O que testar agora
+### Testes
 
-1. **Criar conta** em `/login` (aba "Criar conta") — vira admin automaticamente se for o primeiro usuário.
-2. **Mapa** (`/mapa`): criar uma camada (nome, tipo, fonte), ligar/desligar visibilidade, mexer na opacidade — deve persistir ao recarregar a página.
-3. **Dados Espaciais** (`/dados`): importar um `.geojson` (mais simples de testar) ou `.csv` com colunas `lat`/`lng` — acompanhar o status mudar de "Processando" pra "Ativo", e ver os pontos aparecerem no mapa.
-4. **Casos de Grilagem** (`/casos`): criar um relato com lat/lng de teste, tentar pular etapa do workflow (deve bloquear), avançar `pendente → em_verificacao → validado`, conferir dashboard atualizando e o ponto aparecendo no mapa colorido por prioridade.
-5. **Usuários** (`/usuarios`, precisa ser admin): criar um segundo usuário com papel `leitor` ou `contribuidor`, logar com ele e confirmar que ações restritas (criar camada, validar caso) ficam bloqueadas — isso valida o RBAC de verdade, não só visualmente.
-6. **Dark mode**: alternar no ícone do header — confere se as cores/glass panels ficam legíveis nos dois temas.
-7. **Relatórios** (`/relatorios`): baixar CSV/PDF de casos (com e sem filtro de status/tipo/município) e CSV/PDF de datasets — conferir que os dados batem com `/casos` e `/dados`.
-8. **Linha do Tempo** (`/timeline`, precisa ter rodado `seed:timeline`): trocar entre Tudo/Nacional/Estadual, filtrar por estado (buscar "minas" ou "MG" no seletor), abrir um evento com PDF (ex: Constituição Portuguesa, 1822) e conferir que abre no viewer próprio, não no do browser. Em `/timeline/gerenciar` (como `admin`): cadastrar um evento novo, editar, excluir, e subir um PDF/imagem de teste.
+```bash
+pnpm --filter api test   # testes unitários da API (Jest)
+```
+
+### Erros de tipo depois de um `git pull`
+
+Se aparecerem erros de tipos inexistentes vindos de `@geo/shared` ou de modelos do Prisma, o build local está desatualizado. Rode de novo:
+
+```bash
+pnpm --filter @geo/shared build
+pnpm --filter api exec prisma generate
+```
 
 Se algo quebrar: logs da API em `apps/api` (rodando via `pnpm dev:api`), logs do worker de import estão no mesmo processo da API (BullMQ roda embutido).
 

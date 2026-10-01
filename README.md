@@ -61,7 +61,7 @@ docker-compose.yml      # postgres+postgis, redis, minio, martin (dev)
 - **Relatórios**: export em CSV (lista de casos filtrável, inventário de datasets) e PDF (resumo com KPIs do dashboard + tabelas) gerados sob demanda no backend a partir de dados reais.
 - **Linha do Tempo** (`/timeline`): marcos legais da propriedade da terra e questão ambiental no Brasil, renderizados com TimelineJS3 (self-hosted). Filtro por escopo (nacional/estadual) e por estado (lista as 27 UFs, desabilitando as que ainda não têm evento cadastrado, com busca). PDFs anexados aos eventos abrem num viewer próprio (pdf.js), sem o visualizador nativo do browser. Tela de gestão (`/timeline/gerenciar`, permissão `timeline:manage` — `admin`/`verificador`) com CRUD completo (criar/editar/excluir evento, upload de PDF/imagem pro MinIO).
 
-> Instruções de instalação, variáveis de ambiente, seeds e roteiro de teste manual: ver [`COMO_RODAR.md`](./COMO_RODAR.md).
+> Instruções de instalação, variáveis de ambiente e seeds: ver [`COMO_RODAR.md`](./COMO_RODAR.md).
 
 ## O que falta / próximos passos
 
