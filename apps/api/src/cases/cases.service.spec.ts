@@ -45,22 +45,22 @@ describe("CasesService", () => {
   beforeEach(() => {
     prisma = {
       case: {
-        findMany: jest.fn(),
-        count: jest.fn(),
-        findUnique: jest.fn(),
-        update: jest.fn(),
-        updateMany: jest.fn(),
+        findMany: vi.fn(),
+        count: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
+        updateMany: vi.fn(),
       },
-      caseStatusHistory: { create: jest.fn() },
-      $transaction: jest.fn(),
+      caseStatusHistory: { create: vi.fn() },
+      $transaction: vi.fn(),
     };
     notifications = {
-      create: jest.fn(),
-      notifyAreaInteresse: jest.fn(),
+      create: vi.fn(),
+      notifyAreaInteresse: vi.fn(),
     };
     minio = {
-      uploadAttachment: jest.fn(),
-      deleteAttachment: jest.fn(),
+      uploadAttachment: vi.fn(),
+      deleteAttachment: vi.fn(),
     };
     service = new CasesService(prisma, minio, notifications);
   });

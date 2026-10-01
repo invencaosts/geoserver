@@ -55,7 +55,7 @@ Os dois seeds são idempotentes: se a tabela já tiver dado, eles pulam a carga 
 ### Testes
 
 ```bash
-pnpm --filter api test   # testes unitários da API (Jest)
+pnpm --filter api test   # testes unitários da API (Vitest)
 ```
 
 ### Erros de tipo depois de um `git pull`
