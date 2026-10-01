@@ -7,7 +7,7 @@ import { CASE_TIPO_LABEL as TIPO_LABEL, type CaseTipo } from "@geo/shared";
 import { Input } from "@/components/ui/input";
 import { MapView } from "@/components/map/map-view";
 import { LayersPanel } from "@/components/map/layers-panel";
-import { useCases } from "@/lib/queries/cases";
+import { useCaseMapPoints } from "@/lib/queries/cases";
 import { useDatasets } from "@/lib/queries/datasets";
 import { apiFetch } from "@/lib/api";
 
@@ -29,7 +29,7 @@ export default function MapaPage() {
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const boundsFitRef = useRef(false);
   const [search, setSearch] = useState("");
-  const { data: cases } = useCases();
+  const { data: cases } = useCaseMapPoints();
   const { data: datasets } = useDatasets();
 
   const onMapReady = useCallback((map: maplibregl.Map) => {
@@ -91,15 +91,19 @@ export default function MapaPage() {
           const feature = e.features?.[0];
           if (!feature || feature.geometry.type !== "Point") return;
           const { nome, tipo, prioridade, status } = feature.properties as Record<string, string>;
+          const content = document.createElement("div");
+          content.style.fontSize = "12.5px";
+          content.style.lineHeight = "1.5";
+          const title = document.createElement("strong");
+          title.textContent = nome;
+          const typeLine = document.createElement("div");
+          typeLine.textContent = TIPO_LABEL[tipo as CaseTipo] ?? tipo;
+          const statusLine = document.createElement("div");
+          statusLine.textContent = `Prioridade: ${prioridade} · ${STATUS_LABEL[status] ?? status}`;
+          content.append(title, typeLine, statusLine);
           new maplibregl.Popup({ closeButton: true, offset: 10 })
             .setLngLat(feature.geometry.coordinates as [number, number])
-            .setHTML(
-              `<div style="font-size:12.5px;line-height:1.5">
-                <strong>${nome}</strong><br/>
-                ${TIPO_LABEL[tipo as CaseTipo] ?? tipo}<br/>
-                Prioridade: ${prioridade} · ${STATUS_LABEL[status] ?? status}
-              </div>`,
-            )
+            .setDOMContent(content)
             .addTo(map);
         });
       }
