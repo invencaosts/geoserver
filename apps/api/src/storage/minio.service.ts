@@ -83,4 +83,8 @@ export class MinioService implements OnModuleInit {
     });
     return `${this.publicUrl}/${ATTACHMENTS_BUCKET}/${key}`;
   }
+
+  async deleteAttachment(key: string) {
+    await this.client.removeObject(ATTACHMENTS_BUCKET, key);
+  }
 }

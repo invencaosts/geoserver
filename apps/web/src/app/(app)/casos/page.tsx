@@ -1,10 +1,23 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Paperclip, Plus, ShieldAlert } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  Eye,
+  MapPin,
+  Paperclip,
+  Plus,
+  ShieldAlert,
+  UserRound,
+} from "lucide-react";
 import type { CaseDTO, CasePrioridade, CaseStatus, CaseTipo } from "@geo/shared";
 import { CASE_TIPO_LABEL as TIPO_LABEL, hasPermission } from "@geo/shared";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { SelectFormField, TextAreaField, TextField } from "@/components/ui/form-fields";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SelectField } from "@/components/ui/select-field";
@@ -18,6 +31,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  useCase,
   useCaseDashboard,
   useCases,
   useCreateCase,
@@ -50,21 +71,67 @@ const PRIORIDADE_LABEL: Record<string, string> = {
 };
 
 export default function CasosPage() {
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<CaseStatus | "todos">("todos");
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const { data: stats, isLoading: statsLoading } = useCaseDashboard();
-  const { data: cases, isLoading: casesLoading } = useCases();
+  const {
+    data: casesPage,
+    isLoading: casesLoading,
+    isFetching: casesFetching,
+    isError: casesError,
+    error: casesErrorValue,
+    refetch: refetchCases,
+  } = useCases({
+    page,
+    limit: 20,
+    status: statusFilter === "todos" ? undefined : statusFilter,
+  });
+  const cases = casesPage?.items;
   const user = useAuthStore((s) => s.user);
   const canCreate = user && hasPermission(user.role, "case:create");
   const canValidate = user && hasPermission(user.role, "case:validate");
+
+  useEffect(() => {
+    if (!casesPage) return;
+    const lastPage = Math.max(1, casesPage.totalPages);
+    if (page > lastPage) {
+      // Sincroniza o estado local quando uma validação remove o último item da página.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPage(lastPage);
+    }
+  }, [casesPage, page]);
 
   const maiorTipo = stats?.casosPorTipo.reduce((max, t) => (t.casos > max ? t.casos : max), 0) ?? 0;
 
   return (
     <div className="mx-auto flex h-full max-w-6xl flex-col p-6">
-      <div className="flex items-end justify-between border-b-2 border-foreground pb-3">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-foreground pb-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Registro de casos · atualizado agora
         </p>
-        {canCreate && <NewCaseDialog />}
+        <div className="flex items-end gap-2">
+          <div className="min-w-44">
+            <Label htmlFor="case-status-filter" className="sr-only">Filtrar casos por status</Label>
+            <SelectField
+              id="case-status-filter"
+              value={statusFilter}
+              onValueChange={(status) => {
+                setStatusFilter(status);
+                setPage(1);
+              }}
+              options={[
+                { value: "todos", label: "Todos os status" },
+                ...Object.entries(STATUS_LABEL).map(([value, label]) => ({
+                  value: value as CaseStatus,
+                  label,
+                })),
+              ]}
+              className="h-8 rounded-none text-xs"
+            />
+          </div>
+          {canCreate && <NewCaseDialog />}
+        </div>
       </div>
 
       {/* faixa de estatísticas — régua, sem blocos */}
@@ -86,7 +153,8 @@ export default function CasosPage() {
 
       <div className="grid min-h-0 flex-1 grid-cols-3">
         {/* tabela principal */}
-        <div className="col-span-2 min-h-0 overflow-auto border-r border-border">
+        <div className="col-span-2 flex min-h-0 flex-col border-r border-border">
+          <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full border-collapse">
             <thead className="sticky top-0 bg-muted">
               <tr>
@@ -108,32 +176,92 @@ export default function CasosPage() {
                 <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Anexo
                 </th>
+                <th className="border-b border-border px-3 py-2.5 text-right text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody>
               {casesLoading &&
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={6} className="border-b border-border p-3">
+                    <td colSpan={7} className="border-b border-border p-3">
                       <Skeleton className="h-4 w-full" />
                     </td>
                   </tr>
                 ))}
 
-              {!casesLoading && cases?.length === 0 && (
+              {!casesLoading && casesError && (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center">
-                    <ShieldAlert className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">Nenhum caso registrado ainda.</p>
+                  <td colSpan={7} className="py-14 text-center">
+                    <AlertCircle className="mx-auto mb-2 h-7 w-7 text-destructive/70" />
+                    <p className="text-sm font-medium">Não foi possível carregar os casos.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {casesErrorValue instanceof Error ? casesErrorValue.message : "Tente novamente em instantes."}
+                    </p>
+                    <Button className="mt-3" variant="outline" size="sm" onClick={() => refetchCases()}>
+                      Tentar novamente
+                    </Button>
                   </td>
                 </tr>
               )}
 
-              {cases?.map((c, i) => (
-                <CaseRow key={c.id} index={i + 1} caseItem={c} canValidate={!!canValidate} />
+              {!casesLoading && !casesError && cases?.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center">
+                    <ShieldAlert className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">
+                      {statusFilter === "todos"
+                        ? "Nenhum caso registrado ainda."
+                        : `Nenhum caso com status “${STATUS_LABEL[statusFilter]}”.`}
+                    </p>
+                  </td>
+                </tr>
+              )}
+
+              {!casesError && cases?.map((c, i) => (
+                <CaseRow
+                  key={c.id}
+                  index={(page - 1) * (casesPage?.limit ?? 20) + i + 1}
+                  caseItem={c}
+                  onView={() => setSelectedCaseId(c.id)}
+                  canUpload={user?.role === "admin" || c.createdById === user?.id}
+                />
               ))}
             </tbody>
           </table>
+          </div>
+
+          {!casesLoading && !casesError && casesPage && casesPage.total > 0 && (
+            <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-3 py-2">
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {casesFetching ? "Atualizando… " : ""}
+                {casesPage.total} {casesPage.total === 1 ? "caso" : "casos"} · página {casesPage.page} de {casesPage.totalPages}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label="Ir para a página anterior"
+                  disabled={page <= 1 || casesFetching}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                >
+                  <ChevronLeft />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label="Ir para a próxima página"
+                  disabled={page >= casesPage.totalPages || casesFetching}
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* coluna lateral — distribuição + ranking */}
@@ -186,6 +314,12 @@ export default function CasosPage() {
           </div>
         </div>
       </div>
+
+      <CaseDetailsDialog
+        caseId={selectedCaseId}
+        canValidate={!!canValidate}
+        onOpenChange={(open) => !open && setSelectedCaseId(null)}
+      />
     </div>
   );
 }
@@ -230,16 +364,16 @@ const STAMP_TONE: Record<CaseStatus, string> = {
 function CaseRow({
   index,
   caseItem,
-  canValidate,
+  onView,
+  canUpload,
 }: {
   index: number;
-  caseItem: any;
-  canValidate: boolean;
+  caseItem: CaseDTO;
+  onView: () => void;
+  canUpload: boolean;
 }) {
-  const updateStatus = useUpdateCaseStatus();
   const uploadAnexo = useUploadCaseAnexo();
   const fileRef = useRef<HTMLInputElement>(null);
-  const options = NEXT_STATUS[caseItem.status as CaseStatus] ?? [];
 
   return (
     <tr className="group hover:bg-muted/60">
@@ -247,7 +381,9 @@ function CaseRow({
         {String(index).padStart(2, "0")}
       </td>
       <td className="border-b border-border px-3 py-3">
-        <p className="text-[13px] font-semibold">{caseItem.nome}</p>
+        <button type="button" className="text-left text-[13px] font-semibold hover:text-primary hover:underline" onClick={onView}>
+          {caseItem.nome}
+        </button>
         <p className="text-[11px] text-muted-foreground">{TIPO_LABEL[caseItem.tipo as CaseTipo]}</p>
       </td>
       <td className="border-b border-border px-3 py-3 text-[12.5px] text-muted-foreground">
@@ -257,23 +393,14 @@ function CaseRow({
         {PRIORIDADE_LABEL[caseItem.prioridade]}
       </td>
       <td className="border-b border-border px-3 py-3">
-        {canValidate && options.length > 0 ? (
-          <SelectField
-            className="h-7 rounded-none text-xs"
-            placeholder={STATUS_LABEL[caseItem.status as CaseStatus]}
-            onValueChange={(status: CaseStatus) => updateStatus.mutate({ id: caseItem.id, status })}
-            options={options.map((o) => ({ value: o, label: STATUS_LABEL[o] }))}
-          />
-        ) : (
-          <span
-            className={cn(
-              "border-y border-current py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
-              STAMP_TONE[caseItem.status as CaseStatus],
-            )}
-          >
-            {STATUS_LABEL[caseItem.status as CaseStatus]}
-          </span>
-        )}
+        <span
+          className={cn(
+            "border-y border-current py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
+            STAMP_TONE[caseItem.status as CaseStatus],
+          )}
+        >
+          {STATUS_LABEL[caseItem.status as CaseStatus]}
+        </span>
       </td>
       <td className="border-b border-border px-3 py-3">
         <input
@@ -283,7 +410,16 @@ function CaseRow({
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) uploadAnexo.mutate({ id: caseItem.id, file });
+            if (file) {
+              uploadAnexo.mutate(
+                { id: caseItem.id, file },
+                {
+                  onSuccess: () => toast.success("Anexo enviado"),
+                  onError: (uploadError) =>
+                    toast.error(uploadError instanceof Error ? uploadError.message : "Falha ao enviar anexo"),
+                },
+              );
+            }
             e.target.value = "";
           }}
         />
@@ -293,22 +429,34 @@ function CaseRow({
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-[11.5px] text-primary hover:underline"
+            onClick={(event) => event.stopPropagation()}
           >
             <Paperclip className="h-3.5 w-3.5 shrink-0" />
             <span className="max-w-[120px] truncate">{caseItem.anexoNome ?? "anexo"}</span>
           </a>
-        ) : (
+        ) : canUpload ? (
           <Button
             variant="ghost"
             size="sm"
             className="h-7 gap-1.5 px-2 text-[11.5px] text-muted-foreground"
             disabled={uploadAnexo.isPending}
-            onClick={() => fileRef.current?.click()}
+            onClick={(event) => {
+              event.stopPropagation();
+              fileRef.current?.click();
+            }}
           >
             <Paperclip className="h-3.5 w-3.5" />
             anexar
           </Button>
+        ) : (
+          <span className="text-[11.5px] text-muted-foreground">Sem anexo</span>
         )}
+      </td>
+      <td className="border-b border-border px-3 py-3 text-right">
+        <Button type="button" variant="ghost" size="sm" className="gap-1.5" onClick={onView}>
+          <Eye />
+          Ver detalhes
+        </Button>
       </td>
     </tr>
   );
@@ -359,6 +507,257 @@ function validateCaseForm(form: CaseFormState): CaseFormErrors {
   }
 
   return errors;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function DetailItem({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-[13px]">{children || "Não informado"}</dd>
+    </div>
+  );
+}
+
+function CaseDetailsDialog({
+  caseId,
+  canValidate,
+  onOpenChange,
+}: {
+  caseId: string | null;
+  canValidate: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { data: detail, isLoading, isError, error, refetch } = useCase(caseId);
+  const updateStatus = useUpdateCaseStatus();
+  const [nextStatus, setNextStatus] = useState<CaseStatus | "">("");
+  const [note, setNote] = useState("");
+
+  async function handleValidation(event: React.FormEvent) {
+    event.preventDefault();
+    if (!detail || !nextStatus) return;
+    if (nextStatus === "rejeitado" && !note.trim()) {
+      toast.error("Informe o motivo da rejeição");
+      return;
+    }
+
+    try {
+      await updateStatus.mutateAsync({
+        id: detail.id,
+        status: nextStatus,
+        note: note.trim() || undefined,
+      });
+      toast.success(`Status alterado para ${STATUS_LABEL[nextStatus]}`);
+      setNextStatus("");
+      setNote("");
+    } catch (mutationError) {
+      toast.error(mutationError instanceof Error ? mutationError.message : "Falha ao atualizar o caso");
+    }
+  }
+
+  const options = detail ? NEXT_STATUS[detail.status] : [];
+
+  return (
+    <Dialog
+      open={Boolean(caseId)}
+      onOpenChange={(open) => {
+        if (!open) {
+          setNextStatus("");
+          setNote("");
+        }
+        onOpenChange(open);
+      }}
+    >
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+        <DialogTitle className="sr-only">Detalhes do caso de grilagem</DialogTitle>
+        {isLoading && (
+          <div className="space-y-4 py-8" aria-label="Carregando detalhes do caso">
+            <Skeleton className="h-7 w-2/3" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-36 w-full" />
+          </div>
+        )}
+
+        {!isLoading && isError && (
+          <div className="py-10 text-center">
+            <AlertCircle className="mx-auto mb-2 h-8 w-8 text-destructive/70" />
+            <h2 className="font-display text-lg font-bold">Não foi possível abrir o caso</h2>
+            <DialogDescription className="mt-2">
+              {error instanceof Error ? error.message : "Tente novamente em instantes."}
+            </DialogDescription>
+            <Button type="button" variant="outline" className="mt-4" onClick={() => refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
+        )}
+
+        {!isLoading && !isError && detail && (
+          <>
+            <DialogHeader className="border-b border-border pb-4 pr-10">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={cn("border-y border-current py-0.5 text-[10.5px] font-bold uppercase tracking-wide", STAMP_TONE[detail.status])}>
+                  {STATUS_LABEL[detail.status]}
+                </span>
+                <span className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {TIPO_LABEL[detail.tipo]}
+                </span>
+              </div>
+              <h2 className="font-display text-2xl font-bold leading-tight">{detail.nome}</h2>
+              <DialogDescription>
+                Consulte as informações registradas, os documentos e todo o histórico de validação deste caso.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <section className="border border-border p-4" aria-labelledby="case-general-heading">
+                <h3 id="case-general-heading" className="mb-4 font-display text-base font-bold">Informações gerais</h3>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
+                  <DetailItem label="Identificador">{detail.id}</DetailItem>
+                  <DetailItem label="Prioridade">{PRIORIDADE_LABEL[detail.prioridade]}</DetailItem>
+                  <DetailItem label="Autor">
+                    <span className="inline-flex items-center gap-1.5"><UserRound className="h-3.5 w-3.5" />{detail.createdBy.nome}</span>
+                  </DetailItem>
+                  <DetailItem label="Status atual">{STATUS_LABEL[detail.status]}</DetailItem>
+                  <DetailItem label="Criado em">{formatDate(detail.createdAt)}</DetailItem>
+                  <DetailItem label="Última atualização">{formatDate(detail.updatedAt)}</DetailItem>
+                </dl>
+              </section>
+
+              <section className="border border-border p-4" aria-labelledby="case-location-heading">
+                <h3 id="case-location-heading" className="mb-4 font-display text-base font-bold">Localização</h3>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
+                  <DetailItem label="Município">{detail.municipio}</DetailItem>
+                  <DetailItem label="Estado">{detail.estado}</DetailItem>
+                  <DetailItem label="Latitude">{detail.lat != null ? String(detail.lat) : "Não informada"}</DetailItem>
+                  <DetailItem label="Longitude">{detail.lng != null ? String(detail.lng) : "Não informada"}</DetailItem>
+                </dl>
+                {detail.lat != null && detail.lng != null && (
+                  <p className="mt-4 flex items-center gap-1.5 border-t border-dotted border-border pt-3 text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Coordenadas: {detail.lat.toFixed(6)}, {detail.lng.toFixed(6)}
+                  </p>
+                )}
+              </section>
+            </div>
+
+            <section className="border border-border p-4" aria-labelledby="case-report-heading">
+              <h3 id="case-report-heading" className="mb-4 font-display text-base font-bold">Relato e evidências</h3>
+              <dl className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <DetailItem label="Descrição">
+                    <span className="whitespace-pre-wrap leading-relaxed">{detail.descricao || "Não informada"}</span>
+                  </DetailItem>
+                </div>
+                <DetailItem label="Fonte dos dados">{detail.fonteDados || "Não informada"}</DetailItem>
+                <DetailItem label="Denunciante">{detail.denunciante || "Não informado"}</DetailItem>
+                <div className="md:col-span-2">
+                  <DetailItem label="Anexo">
+                    {detail.anexoUrl ? (
+                      <a
+                        href={detail.anexoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                      >
+                        <Paperclip className="h-3.5 w-3.5" />
+                        {detail.anexoNome || "Abrir anexo"}
+                      </a>
+                    ) : (
+                      "Nenhum anexo enviado"
+                    )}
+                  </DetailItem>
+                </div>
+              </dl>
+            </section>
+
+            <section className="border border-border p-4" aria-labelledby="case-history-heading">
+              <h3 id="case-history-heading" className="mb-4 font-display text-base font-bold">Histórico de status</h3>
+              {detail.statusHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma alteração de status registrada.</p>
+              ) : (
+                <ol className="space-y-0">
+                  {detail.statusHistory.map((entry, index) => (
+                    <li key={entry.id} className="relative border-l border-border pb-4 pl-5 last:pb-0">
+                      <span className="absolute -left-1 top-1.5 h-2 w-2 bg-primary" aria-hidden="true" />
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <p className="text-[13px] font-semibold">
+                          {entry.fromStatus
+                            ? `${STATUS_LABEL[entry.fromStatus]} → ${STATUS_LABEL[entry.toStatus]}`
+                            : STATUS_LABEL[entry.toStatus]}
+                        </p>
+                        <time className="flex items-center gap-1 text-[11px] text-muted-foreground" dateTime={entry.createdAt}>
+                          <Clock3 className="h-3 w-3" />{formatDate(entry.createdAt)}
+                        </time>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {entry.changedBy?.nome || (index === 0 ? detail.createdBy.nome : "Usuário não identificado")}
+                      </p>
+                      {entry.note && <p className="mt-1 whitespace-pre-wrap text-[12.5px]">{entry.note}</p>}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+
+            <section className="border-2 border-foreground p-4" aria-labelledby="case-validation-heading">
+              <h3 id="case-validation-heading" className="font-display text-base font-bold">Validação do caso</h3>
+              {!canValidate ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Seu perfil possui acesso somente à consulta. A alteração de status é reservada a verificadores e administradores.
+                </p>
+              ) : options.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">Não há transições disponíveis para este status.</p>
+              ) : (
+                <form onSubmit={handleValidation} className="mt-4 grid gap-3 md:grid-cols-[minmax(190px,0.7fr)_1.3fr_auto] md:items-end">
+                  <div className="space-y-2">
+                    <Label htmlFor="case-next-status">Novo status</Label>
+                    <SelectField
+                      id="case-next-status"
+                      value={nextStatus || undefined}
+                      onValueChange={setNextStatus}
+                      placeholder="Selecione"
+                      disabled={updateStatus.isPending}
+                      options={options.map((status) => ({ value: status, label: STATUS_LABEL[status] }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="case-validation-note">
+                      {nextStatus === "rejeitado" ? "Motivo da rejeição *" : "Observação"}
+                    </Label>
+                    <Textarea
+                      id="case-validation-note"
+                      value={note}
+                      onChange={(event) => setNote(event.target.value)}
+                      maxLength={1000}
+                      rows={2}
+                      disabled={updateStatus.isPending}
+                      placeholder="Registre o fundamento da decisão"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={
+                      updateStatus.isPending ||
+                      !nextStatus ||
+                      (nextStatus === "rejeitado" && !note.trim())
+                    }
+                  >
+                    {updateStatus.isPending ? "Salvando…" : "Confirmar"}
+                  </Button>
+                </form>
+              )}
+            </section>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function NewCaseDialog() {

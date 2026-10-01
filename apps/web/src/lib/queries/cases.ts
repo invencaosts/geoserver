@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CaseDTO, CaseStatus } from "@geo/shared";
+import type {
+  CaseDTO,
+  CaseDetailDTO,
+  CaseMapPointDTO,
+  CaseStatus,
+  PaginatedCasesDTO,
+} from "@geo/shared";
 import { apiFetch } from "@/lib/api";
 
 interface DashboardStats {
@@ -13,11 +19,37 @@ interface DashboardStats {
   municipiosMaisAfetados: { municipio: string; casos: number }[];
 }
 
-export function useCases(filters: { status?: CaseStatus } = {}) {
-  const qs = filters.status ? `?status=${filters.status}` : "";
+export interface CaseFilters {
+  page?: number;
+  limit?: number;
+  status?: CaseStatus;
+}
+
+export function useCases(filters: CaseFilters = {}) {
+  const params = new URLSearchParams();
+  params.set("page", String(filters.page ?? 1));
+  params.set("limit", String(filters.limit ?? 20));
+  if (filters.status) params.set("status", filters.status);
+
   return useQuery({
     queryKey: ["cases", filters],
-    queryFn: () => apiFetch<CaseDTO[]>(`/cases${qs}`),
+    queryFn: () => apiFetch<PaginatedCasesDTO>(`/cases?${params.toString()}`),
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useCase(id: string | null) {
+  return useQuery({
+    queryKey: ["cases", "detail", id],
+    queryFn: () => apiFetch<CaseDetailDTO>(`/cases/${id}`),
+    enabled: Boolean(id),
+  });
+}
+
+export function useCaseMapPoints() {
+  return useQuery({
+    queryKey: ["cases", "map"],
+    queryFn: () => apiFetch<CaseMapPointDTO[]>("/cases/map"),
   });
 }
 
@@ -32,8 +64,9 @@ export function useCreateCase() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: Partial<CaseDTO>) =>
-      apiFetch<CaseDTO>("/cases", { method: "POST", body: data }),
-    onSuccess: () => {
+      apiFetch<CaseDetailDTO>("/cases", { method: "POST", body: data }),
+    onSuccess: (data) => {
+      qc.setQueryData(["cases", "detail", data.id], data);
       qc.invalidateQueries({ queryKey: ["cases"] });
     },
   });
@@ -45,9 +78,10 @@ export function useUploadCaseAnexo() {
     mutationFn: ({ id, file }: { id: string; file: File }) => {
       const formData = new FormData();
       formData.append("file", file);
-      return apiFetch<CaseDTO>(`/cases/${id}/anexo`, { method: "POST", formData });
+      return apiFetch<CaseDetailDTO>(`/cases/${id}/anexo`, { method: "POST", formData });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      qc.setQueryData(["cases", "detail", data.id], data);
       qc.invalidateQueries({ queryKey: ["cases"] });
     },
   });
@@ -57,8 +91,9 @@ export function useUpdateCaseStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status, note }: { id: string; status: CaseStatus; note?: string }) =>
-      apiFetch<CaseDTO>(`/cases/${id}/status`, { method: "PATCH", body: { status, note } }),
-    onSuccess: () => {
+      apiFetch<CaseDetailDTO>(`/cases/${id}/status`, { method: "PATCH", body: { status, note } }),
+    onSuccess: (data) => {
+      qc.setQueryData(["cases", "detail", data.id], data);
       qc.invalidateQueries({ queryKey: ["cases"] });
     },
   });

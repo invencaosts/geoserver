@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { randomUUID } from "crypto";
 import type { AuthUser, CaseStatus } from "@geo/shared";
 import { CASE_TIPO_LABEL } from "@geo/shared";
@@ -7,8 +14,8 @@ import { MinioService } from "../storage/minio.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { CreateCaseDto } from "./dto/create-case.dto";
 import { UpdateCaseStatusDto } from "./dto/update-case-status.dto";
-
-const ANEXO_EXTENSOES = ["pdf", "kmz"];
+import { ListCasesQueryDto } from "./dto/list-cases-query.dto";
+import { validateCaseAttachment } from "../common/upload-validation";
 
 const ALLOWED_TRANSITIONS: Record<CaseStatus, CaseStatus[]> = {
   pendente: ["em_verificacao", "rejeitado"],
@@ -19,27 +26,78 @@ const ALLOWED_TRANSITIONS: Record<CaseStatus, CaseStatus[]> = {
 
 @Injectable()
 export class CasesService {
+  private readonly logger = new Logger(CasesService.name);
+
   constructor(
     private prisma: PrismaService,
     private minio: MinioService,
     private notifications: NotificationsService,
   ) {}
 
-  findAll(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
+  async findAll(filters: ListCasesQueryDto, user: AuthUser) {
+    // A validação HTTP já impõe estes limites; a normalização também protege
+    // chamadas internas e futuras reutilizações do serviço.
+    const page = Math.max(1, Math.floor(filters.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Math.floor(filters.limit ?? 20)));
+    const where = {
+      status: filters.status,
+      municipio: filters.municipio
+        ? { equals: filters.municipio, mode: "insensitive" as const }
+        : undefined,
+      tipo: filters.tipo,
+    };
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.case.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: { createdBy: { select: { id: true, nome: true } } },
+      }),
+      this.prisma.case.count({ where }),
+    ]);
+
+    return {
+      items: items.map((item) => this.serializeCase(item, user)),
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  findForExport(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
     return this.prisma.case.findMany({
       where: {
         status: filters.status,
         municipio: filters.municipio
-          ? { equals: filters.municipio, mode: "insensitive" }
+          ? { equals: filters.municipio, mode: "insensitive" as const }
           : undefined,
         tipo: filters.tipo as any,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       include: { createdBy: { select: { id: true, nome: true } } },
     });
   }
 
-  async findOne(id: string) {
+  findMapPoints() {
+    return this.prisma.case.findMany({
+      where: { lat: { not: null }, lng: { not: null } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        nome: true,
+        tipo: true,
+        prioridade: true,
+        status: true,
+        lat: true,
+        lng: true,
+      },
+    });
+  }
+
+  private async findOneRaw(id: string) {
     const item = await this.prisma.case.findUnique({
       where: { id },
       include: {
@@ -52,6 +110,27 @@ export class CasesService {
     });
     if (!item) throw new NotFoundException("Caso não encontrado");
     return item;
+  }
+
+  async findOne(id: string, user: AuthUser) {
+    const item = await this.findOneRaw(id);
+    return this.serializeCase(item, user);
+  }
+
+  private canReadSensitive(item: { createdById: string }, user: AuthUser) {
+    return user.role === "admin" || user.role === "verificador" || item.createdById === user.id;
+  }
+
+  private serializeCase<T extends { createdById: string }>(item: T, user: AuthUser) {
+    const result: Record<string, unknown> = { ...item };
+    // Chaves internas de armazenamento nunca fazem parte da API pública.
+    delete result.anexoKey;
+    if (!this.canReadSensitive(item, user)) {
+      delete result.denunciante;
+      delete result.anexoUrl;
+      delete result.anexoNome;
+    }
+    return result;
   }
 
   async create(dto: CreateCaseDto, user: AuthUser) {
@@ -90,11 +169,12 @@ export class CasesService {
       user.id,
     );
 
-    return this.findOne(created.id);
+    return this.findOne(created.id, user);
   }
 
   async updateStatus(id: string, dto: UpdateCaseStatusDto, user: AuthUser) {
-    const current = await this.findOne(id);
+    const current = await this.findOneRaw(id);
+    const note = dto.note?.trim() || undefined;
 
     const allowed = ALLOWED_TRANSITIONS[current.status];
     if (!allowed.includes(dto.status)) {
@@ -103,18 +183,30 @@ export class CasesService {
       );
     }
 
-    await this.prisma.$transaction([
-      this.prisma.case.update({ where: { id }, data: { status: dto.status } }),
-      this.prisma.caseStatusHistory.create({
+    if (dto.status === "rejeitado" && !note) {
+      throw new BadRequestException("Informe o motivo da rejeição");
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.case.updateMany({
+        where: { id, status: current.status },
+        data: { status: dto.status },
+      });
+      if (updated.count !== 1) {
+        throw new ConflictException(
+          "O status deste caso foi alterado por outra pessoa. Atualize os detalhes e tente novamente.",
+        );
+      }
+      await tx.caseStatusHistory.create({
         data: {
           caseId: id,
           fromStatus: current.status,
           toStatus: dto.status,
           changedById: user.id,
-          note: dto.note,
+          note,
         },
-      }),
-    ]);
+      });
+    });
 
     if (current.createdById !== user.id) {
       if (dto.status === "validado") {
@@ -130,35 +222,51 @@ export class CasesService {
           current.createdById,
           "contribuicao_retorno",
           "Retorno sobre sua contribuição",
-          dto.note
-            ? `Seu caso "${current.nome}" foi rejeitado. Motivo: ${dto.note}`
+          note
+            ? `Seu caso "${current.nome}" foi rejeitado. Motivo: ${note}`
             : `Seu caso "${current.nome}" foi rejeitado.`,
           id,
         );
       }
     }
 
-    return this.findOne(id);
+    return this.findOne(id, user);
   }
 
-  async uploadAnexo(id: string, file?: Express.Multer.File) {
-    await this.findOne(id);
+  async uploadAnexo(id: string, file: Express.Multer.File | undefined, user: AuthUser) {
+    const current = await this.findOneRaw(id);
+    if (user.role !== "admin" && current.createdById !== user.id) {
+      throw new ForbiddenException("Somente o autor do caso ou um administrador pode anexar arquivos");
+    }
+    if (current.anexoKey || current.anexoUrl) {
+      throw new ConflictException("Este caso já possui um anexo; a substituição não é permitida");
+    }
     if (!file) throw new BadRequestException("Envie um arquivo");
 
-    const ext = file.originalname.split(".").pop()?.toLowerCase() ?? "";
-    if (!ANEXO_EXTENSOES.includes(ext)) {
-      throw new BadRequestException(`Extensão .${ext} não suportada para anexo. Use .pdf ou .kmz`);
-    }
+    const validated = await validateCaseAttachment(file);
+    const ext = validated.extension;
 
     const key = `cases/${id}/${randomUUID()}.${ext}`;
-    const anexoUrl = await this.minio.uploadAttachment(key, file.buffer, file.mimetype);
+    const anexoUrl = await this.minio.uploadAttachment(key, file.buffer, validated.contentType);
+    let persisted = false;
+    try {
+      const result = await this.prisma.case.updateMany({
+        where: { id, anexoKey: null, anexoUrl: null },
+        data: { anexoUrl, anexoKey: key, anexoNome: file.originalname },
+      });
+      if (result.count !== 1) {
+        throw new ConflictException("Outro anexo foi enviado ao mesmo tempo; atualize o caso");
+      }
+      persisted = true;
+    } finally {
+      if (!persisted) {
+        await this.minio.deleteAttachment(key).catch((error) => {
+          this.logger.error(`Falha ao remover anexo órfão ${key} do caso ${id}`, error);
+        });
+      }
+    }
 
-    await this.prisma.case.update({
-      where: { id },
-      data: { anexoUrl, anexoKey: key, anexoNome: file.originalname },
-    });
-
-    return this.findOne(id);
+    return this.findOne(id, user);
   }
 
   async getDashboard() {

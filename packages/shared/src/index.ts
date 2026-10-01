@@ -145,6 +145,7 @@ export interface CaseDTO {
   createdById: string;
   createdAt: string;
   updatedAt: string;
+  createdBy?: CasePersonDTO;
 }
 
 export interface CaseStatusHistoryDTO {
@@ -155,7 +156,31 @@ export interface CaseStatusHistoryDTO {
   changedById: string;
   note?: string | null;
   createdAt: string;
+  changedBy?: CasePersonDTO;
 }
+
+export interface CasePersonDTO {
+  id: string;
+  nome: string;
+}
+
+export interface CaseDetailDTO extends CaseDTO {
+  createdBy: CasePersonDTO;
+  statusHistory: CaseStatusHistoryDTO[];
+}
+
+export interface PaginatedCasesDTO {
+  items: CaseDTO[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export type CaseMapPointDTO = Pick<
+  CaseDTO,
+  "id" | "nome" | "tipo" | "prioridade" | "status" | "lat" | "lng"
+>;
 
 export type NotificationTipo =
   "contribuicao_aceita" | "contribuicao_retorno" | "novo_caso_area_interesse";
