@@ -61,6 +61,10 @@ export class MinioService implements OnModuleInit {
     return key;
   }
 
+  async delete(key: string) {
+    await this.client.removeObject(this.bucket, key);
+  }
+
   async getBuffer(key: string): Promise<Buffer> {
     const stream = await this.client.getObject(this.bucket, key);
     const chunks: Buffer[] = [];

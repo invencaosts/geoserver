@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { randomUUID } from "crypto";
@@ -23,6 +23,8 @@ export const DATASET_IMPORT_QUEUE = "dataset-import";
 
 @Injectable()
 export class DatasetsService {
+  private readonly logger = new Logger(DatasetsService.name);
+
   constructor(
     private prisma: PrismaService,
     private minio: MinioService,
@@ -78,8 +80,15 @@ export class DatasetsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const dataset = await this.findOne(id);
     await this.prisma.dataset.delete({ where: { id } });
+
+    // o registro já foi excluído; uma falha no MinIO só deixa o arquivo órfão, não desfaz a exclusão
+    if (dataset.storageKey) {
+      await this.minio.delete(dataset.storageKey).catch((error) => {
+        this.logger.error(`Falha ao remover arquivo ${dataset.storageKey} do dataset ${id}`, error);
+      });
+    }
     return { success: true };
   }
 
