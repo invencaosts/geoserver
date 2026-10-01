@@ -1,24 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Database, MapPinned, ShieldCheck } from "lucide-react";
-import type { PerfilContribuidor, RoleName } from "@geo/shared";
-import { PERFIL_CONTRIBUIDOR_LABEL } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SelectField } from "@/components/ui/select-field";
-import { InstitutionAutocomplete } from "@/components/ui/institution-autocomplete";
 import { useLogin, useRegister } from "@/lib/queries/auth";
 import { toast } from "sonner";
-
-const REGISTER_ROLE_OPTIONS: { value: RoleName; label: string }[] = [
-  { value: "leitor", label: "Leitor" },
-  { value: "contribuidor", label: "Contribuidor" },
-  { value: "verificador", label: "Verificador" },
-];
 
 function formatCpf(value: string) {
   return value
@@ -55,14 +46,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
-  const [role, setRole] = useState<RoleName>("leitor");
-  const [perfilContribuidor, setPerfilContribuidor] = useState<PerfilContribuidor | "">("");
-  const [quemRepresenta, setQuemRepresenta] = useState("");
 
   const login = useLogin();
   const register = useRegister();
   const pending = login.isPending || register.isPending;
-  const precisaPerfil = mode === "register" && (role === "contribuidor" || role === "verificador");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,11 +63,6 @@ export default function LoginPage() {
           email,
           cpf,
           senha,
-          role,
-          perfilContribuidor: precisaPerfil
-            ? (perfilContribuidor as PerfilContribuidor)
-            : undefined,
-          quemRepresenta: precisaPerfil ? quemRepresenta : undefined,
         });
       }
       router.push("/mapa");
@@ -162,7 +144,7 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">
               {mode === "login"
                 ? "Acesse com seu e-mail e senha cadastrados."
-                : "O primeiro usuário do sistema vira administrador automaticamente."}
+                : "Contas novas entram como Visualizador. Um verificador ou administrador libera o envio e o download de dados."}
             </p>
           </div>
 
@@ -226,56 +208,17 @@ export default function LoginPage() {
                 required
               />
             </div>
-            {mode === "register" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Papel</Label>
-                  <SelectField
-                    id="role"
-                    value={role}
-                    onValueChange={setRole}
-                    options={REGISTER_ROLE_OPTIONS}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Acima de leitor passa por validação de um usuário com papel superior.
-                  </p>
-                </div>
-
-                {precisaPerfil && (
-                  <div className="space-y-4 rounded-lg border border-border/60 p-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="perfilContribuidor">Perfil</Label>
-                      <SelectField
-                        id="perfilContribuidor"
-                        value={perfilContribuidor}
-                        onValueChange={setPerfilContribuidor}
-                        placeholder="Selecione"
-                        options={Object.entries(PERFIL_CONTRIBUIDOR_LABEL).map(
-                          ([value, label]) => ({
-                            value: value as PerfilContribuidor,
-                            label,
-                          }),
-                        )}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="quemRepresenta">Quem você representa</Label>
-                      <InstitutionAutocomplete
-                        id="quemRepresenta"
-                        value={quemRepresenta}
-                        onValueChange={setQuemRepresenta}
-                        placeholder="Busque sua instituição de ensino ou pesquisa"
-                        required={precisaPerfil}
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
             </Button>
           </form>
+
+          <Link
+            href="/mapa"
+            className="block text-center text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Continuar sem login
+          </Link>
         </div>
       </div>
     </div>

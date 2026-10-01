@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DatasetDTO } from "@geo/shared";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiFetchBlob } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 
 export function useDatasets() {
@@ -45,6 +45,20 @@ export function useDeleteDataset() {
   });
 }
 
-export function datasetExportUrl(id: string) {
-  return `${process.env.NEXT_PUBLIC_API_URL}/datasets/${id}/export`;
+// O export exige login (permissão data:export), então baixa via fetch com o token
+// em vez de um link direto, que não levaria o header Authorization.
+export function useDownloadDataset() {
+  return useMutation({
+    mutationFn: async ({ id, nome }: { id: string; nome: string }) => {
+      const blob = await apiFetchBlob(`/datasets/${id}/export`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${nome}.geojson`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    },
+  });
 }

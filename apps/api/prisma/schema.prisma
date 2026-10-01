@@ -11,29 +11,14 @@ datasource db {
 enum RoleName {
   admin
   verificador
-  contribuidor
-  leitor
+  pesquisador_envio_download
+  pesquisador_envio
+  visualizador
 }
 
 enum UserStatus {
   ativo
   inativo
-}
-
-enum RoleApprovalStatus {
-  pendente
-  aprovado
-  rejeitado
-}
-
-enum PerfilContribuidor {
-  pesquisador
-  militante_movimento_social
-  partido_politico
-  servidor_publico
-  lideranca_comunitaria
-  movimento_social_organizado
-  conselhos_ongs
 }
 
 enum InstituicaoTipo {
@@ -60,10 +45,7 @@ model User {
   email               String              @unique
   cpf                 String?             @unique
   senhaHash           String
-  role                RoleName            @default(leitor)
-  requestedRole       RoleName            @default(leitor)
-  roleApprovalStatus  RoleApprovalStatus  @default(aprovado)
-  perfilContribuidor  PerfilContribuidor?
+  role                RoleName            @default(visualizador)
   localidade          String?
   quemRepresenta      String?
   telefone            String?

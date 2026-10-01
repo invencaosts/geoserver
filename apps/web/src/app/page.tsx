@@ -2,15 +2,14 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/auth-store";
 
+// O site é aberto ao visitante (papel visualizador), então a entrada é sempre o mapa.
 export default function Home() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    router.replace(user ? "/mapa" : "/login");
-  }, [user, router]);
+    router.replace("/mapa");
+  }, [router]);
 
   return null;
 }

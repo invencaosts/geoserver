@@ -34,7 +34,7 @@ export class CasesService {
     private notifications: NotificationsService,
   ) {}
 
-  async findAll(filters: ListCasesQueryDto, user: AuthUser) {
+  async findAll(filters: ListCasesQueryDto, user?: AuthUser) {
     // A validação HTTP já impõe estes limites; a normalização também protege
     // chamadas internas e futuras reutilizações do serviço.
     const page = Math.max(1, Math.floor(filters.page ?? 1));
@@ -112,16 +112,18 @@ export class CasesService {
     return item;
   }
 
-  async findOne(id: string, user: AuthUser) {
+  async findOne(id: string, user?: AuthUser) {
     const item = await this.findOneRaw(id);
     return this.serializeCase(item, user);
   }
 
-  private canReadSensitive(item: { createdById: string }, user: AuthUser) {
+  // Visitante anônimo (user undefined) nunca vê dados sensíveis.
+  private canReadSensitive(item: { createdById: string }, user?: AuthUser) {
+    if (!user) return false;
     return user.role === "admin" || user.role === "verificador" || item.createdById === user.id;
   }
 
-  private serializeCase<T extends { createdById: string }>(item: T, user: AuthUser) {
+  private serializeCase<T extends { createdById: string }>(item: T, user?: AuthUser) {
     const result: Record<string, unknown> = { ...item };
     // Chaves internas de armazenamento nunca fazem parte da API pública.
     delete result.anexoKey;
@@ -236,7 +238,9 @@ export class CasesService {
   async uploadAnexo(id: string, file: Express.Multer.File | undefined, user: AuthUser) {
     const current = await this.findOneRaw(id);
     if (user.role !== "admin" && current.createdById !== user.id) {
-      throw new ForbiddenException("Somente o autor do caso ou um administrador pode anexar arquivos");
+      throw new ForbiddenException(
+        "Somente o autor do caso ou um administrador pode anexar arquivos",
+      );
     }
     if (current.anexoKey || current.anexoUrl) {
       throw new ConflictException("Este caso já possui um anexo; a substituição não é permitida");

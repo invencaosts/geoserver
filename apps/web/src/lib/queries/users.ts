@@ -19,12 +19,3 @@ export function useUpdateUser() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
 }
-
-export function useApproveRole() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, decision }: { id: string; decision: "aprovado" | "rejeitado" }) =>
-      apiFetch<UserDTO>(`/users/${id}/approval`, { method: "PATCH", body: { decision } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
-  });
-}

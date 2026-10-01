@@ -13,7 +13,6 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
-import { ApproveRoleDto } from "./dto/approve-role.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { PermissionsGuard } from "../common/permissions.guard";
 import { RequirePermissions } from "../common/permissions.decorator";
@@ -27,7 +26,7 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  @RequirePermissions("user:manage")
+  @RequirePermissions("user:read")
   findAll() {
     return this.usersService.findAll();
   }
@@ -48,15 +47,11 @@ export class UsersController {
     return this.usersService.updateAvatar(user.id, file);
   }
 
+  // Admin altera qualquer papel e o status; verificador só define os pesquisadores
+  // (a regra fina fica no service).
   @Patch(":id")
-  @RequirePermissions("user:manage")
-  update(@Param("id") id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
-  }
-
-  @Patch(":id/approval")
-  @RequirePermissions("user:manage")
-  approveRole(@Param("id") id: string, @Body() dto: ApproveRoleDto) {
-    return this.usersService.approveRole(id, dto.decision);
+  @RequirePermissions("user:assign_researcher")
+  update(@Param("id") id: string, @Body() dto: UpdateUserDto, @CurrentUser() actor: AuthUser) {
+    return this.usersService.update(id, dto, actor);
   }
 }

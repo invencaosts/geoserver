@@ -3,6 +3,7 @@
 import { useTheme } from "next-themes";
 import { Bell, CheckCheck, Contrast, Moon, Sun } from "lucide-react";
 import { NOTIFICATION_TIPO_LABEL } from "@geo/shared";
+import { useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -91,6 +92,7 @@ function NotificationBell() {
 export function AppHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   const { theme, setTheme } = useTheme();
   const Icon = THEME_ICON[(theme as keyof typeof THEME_ICON) ?? "dark"] ?? Moon;
+  const user = useAuthStore((s) => s.user);
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b-2 border-foreground/90 bg-background px-7">
@@ -100,7 +102,7 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
       </div>
 
       <div className="flex items-center gap-1">
-        <NotificationBell />
+        {user && <NotificationBell />}
 
         <DropdownMenu>
           <DropdownMenuTrigger

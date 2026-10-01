@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Database, Download, FileText, ShieldAlert } from "lucide-react";
 import type { CaseStatus } from "@geo/shared";
-import { CASE_TIPO_LABEL as TIPO_LABEL, hasPermission } from "@geo/shared";
+import { CASE_TIPO_LABEL as TIPO_LABEL, userHasPermission } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,8 +26,8 @@ const STATUS_LABEL: Record<CaseStatus, string> = {
 
 export default function RelatoriosPage() {
   const user = useAuthStore((s) => s.user);
-  const canReadCasos = user && hasPermission(user.role, "case:read");
-  const canReadDatasets = user && hasPermission(user.role, "dataset:read");
+  const canReadCasos = userHasPermission(user, "case:read");
+  const canReadDatasets = userHasPermission(user, "dataset:read");
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">

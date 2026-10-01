@@ -1,6 +1,12 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { hasPermission, type AuthUser, type Permission } from "@geo/shared";
+import { ANONYMOUS_ROLE, hasPermission, type AuthUser, type Permission } from "@geo/shared";
 import { PERMISSIONS_KEY } from "./permissions.decorator";
 
 @Injectable()
@@ -17,15 +23,14 @@ export class PermissionsGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user: AuthUser | undefined = request.user;
+    const role = user?.role ?? ANONYMOUS_ROLE;
 
-    if (!user) throw new ForbiddenException("Não autenticado");
+    const allowed = required.every((p) => hasPermission(role, p));
+    if (allowed) return true;
 
-    const allowed = required.every((p) => hasPermission(user.role, p));
-    if (!allowed) {
-      throw new ForbiddenException(
-        `Papel "${user.role}" não tem permissão para: ${required.join(", ")}`,
-      );
-    }
-    return true;
+    if (!user) throw new UnauthorizedException("Faça login para continuar");
+    throw new ForbiddenException(
+      `Papel "${user.role}" não tem permissão para: ${required.join(", ")}`,
+    );
   }
 }

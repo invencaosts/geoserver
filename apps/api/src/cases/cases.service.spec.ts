@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import type { AuthUser, CaseStatus } from "@geo/shared";
 import { CasesService } from "./cases.service";
 
@@ -164,9 +169,9 @@ describe("CasesService", () => {
   it("bloqueia transição incompatível com o status atual", async () => {
     prisma.case.findUnique.mockResolvedValue(caseDetail("validado"));
 
-    await expect(
-      service.updateStatus("case-1", { status: "rejeitado" }, verifier),
-    ).rejects.toThrow("Transição inválida");
+    await expect(service.updateStatus("case-1", { status: "rejeitado" }, verifier)).rejects.toThrow(
+      "Transição inválida",
+    );
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
@@ -190,7 +195,7 @@ describe("CasesService", () => {
     expect(prisma.caseStatusHistory.create).not.toHaveBeenCalled();
   });
 
-  it("redige denunciante e anexo de leitores e não autores", async () => {
+  it("redige denunciante e anexo de visualizadores e não autores", async () => {
     const detail = {
       ...caseDetail(),
       anexoKey: "cases/case-1/secret.pdf",
@@ -203,9 +208,25 @@ describe("CasesService", () => {
       id: "reader-1",
       nome: "Leitora",
       email: "leitora@example.test",
-      role: "leitor",
+      role: "visualizador",
       status: "ativo",
     });
+
+    expect(result).not.toHaveProperty("denunciante");
+    expect(result).not.toHaveProperty("anexoUrl");
+    expect(result).not.toHaveProperty("anexoNome");
+    expect(result).not.toHaveProperty("anexoKey");
+  });
+
+  it("redige denunciante e anexo de visitantes anônimos", async () => {
+    prisma.case.findUnique.mockResolvedValue({
+      ...caseDetail(),
+      anexoKey: "cases/case-1/secret.pdf",
+      anexoUrl: "/storage/attachments/secret.pdf",
+      anexoNome: "secret.pdf",
+    });
+
+    const result = await service.findOne("case-1", undefined);
 
     expect(result).not.toHaveProperty("denunciante");
     expect(result).not.toHaveProperty("anexoUrl");
@@ -226,7 +247,7 @@ describe("CasesService", () => {
       id: "author-1",
       nome: "Autora",
       email: "autora@example.test",
-      role: "contribuidor",
+      role: "pesquisador_envio",
       status: "ativo",
     });
 
@@ -245,7 +266,7 @@ describe("CasesService", () => {
   });
 
   it("remove o arquivo novo se perder uma corrida de upload", async () => {
-    const author = { ...verifier, id: "author-1", role: "contribuidor" as const };
+    const author = { ...verifier, id: "author-1", role: "pesquisador_envio" as const };
     prisma.case.findUnique.mockResolvedValue(caseDetail());
     prisma.case.updateMany.mockResolvedValue({ count: 0 });
     minio.uploadAttachment.mockResolvedValue("/storage/attachments/new.pdf");

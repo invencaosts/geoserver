@@ -33,8 +33,10 @@ import {
   useDatasets,
   useDeleteDataset,
   useUploadDataset,
-  datasetExportUrl,
+  useDownloadDataset,
 } from "@/lib/queries/datasets";
+import { userHasPermission } from "@geo/shared";
+import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -68,6 +70,10 @@ const STATUS_TONE: Record<string, { icon: string; chip: string }> = {
 export default function ImportarExportarPage() {
   const { data: datasets, isLoading } = useDatasets();
   const deleteDataset = useDeleteDataset();
+  const downloadDataset = useDownloadDataset();
+  const user = useAuthStore((s) => s.user);
+  const canExport = userHasPermission(user, "data:export");
+  const canDelete = userHasPermission(user, "dataset:delete");
   const [preselectFormat, setPreselectFormat] = useState<(typeof FORMATS)[number] | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
@@ -160,58 +166,64 @@ export default function ImportarExportarPage() {
       </Card>
 
       {/* exportar */}
-      <Card>
-        <CardContent className="space-y-4 p-5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <ArrowDownToLine className="h-[18px] w-[18px]" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Exportar dados</p>
-              <p className="text-xs text-muted-foreground">
-                Datasets ativos disponíveis pra download em GeoJSON
-              </p>
-            </div>
-          </div>
-
-          {isLoading && <Skeleton className="h-12 w-full rounded-lg" />}
-          {!isLoading && exportaveis.length === 0 && (
-            <p className="rounded-lg border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
-              Nenhum dataset ativo disponível pra exportação ainda.
-            </p>
-          )}
-          <div className="grid gap-2">
-            {exportaveis.map((d) => (
-              <div
-                key={d.id}
-                className="flex items-center justify-between rounded-lg border border-border/60 px-3.5 py-2.5"
-              >
-                <div className="flex items-center gap-2.5">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{d.nome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {d.registros.toLocaleString("pt-BR")} registros
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5"
-                  nativeButton={false}
-                  render={
-                    <a href={datasetExportUrl(d.id)} target="_blank" rel="noreferrer">
-                      <ArrowDownToLine className="h-3.5 w-3.5" />
-                      GeoJSON
-                    </a>
-                  }
-                />
+      {canExport && (
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <ArrowDownToLine className="h-[18px] w-[18px]" />
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div>
+                <p className="text-sm font-semibold">Exportar dados</p>
+                <p className="text-xs text-muted-foreground">
+                  Datasets ativos disponíveis pra download em GeoJSON
+                </p>
+              </div>
+            </div>
+
+            {isLoading && <Skeleton className="h-12 w-full rounded-lg" />}
+            {!isLoading && exportaveis.length === 0 && (
+              <p className="rounded-lg border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
+                Nenhum dataset ativo disponível pra exportação ainda.
+              </p>
+            )}
+            <div className="grid gap-2">
+              {exportaveis.map((d) => (
+                <div
+                  key={d.id}
+                  className="flex items-center justify-between rounded-lg border border-border/60 px-3.5 py-2.5"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">{d.nome}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.registros.toLocaleString("pt-BR")} registros
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    disabled={downloadDataset.isPending}
+                    onClick={() =>
+                      toast.promise(downloadDataset.mutateAsync({ id: d.id, nome: d.nome }), {
+                        loading: "Preparando download...",
+                        success: "Download iniciado",
+                        error: (err) => (err instanceof Error ? err.message : "Falha no download"),
+                      })
+                    }
+                  >
+                    <ArrowDownToLine className="h-3.5 w-3.5" />
+                    GeoJSON
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* histórico de operações */}
       <div className="space-y-2.5">
@@ -265,14 +277,16 @@ export default function ImportarExportarPage() {
                   >
                     {STATUS_LABEL[d.status]}
                   </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteDataset.mutate(d.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteDataset.mutate(d.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

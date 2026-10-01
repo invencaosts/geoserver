@@ -60,15 +60,22 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Relatórios",
     subtitle: "Exportação de dados em CSV e PDF",
     icon: FileText,
-    permission: "case:read",
+    permission: "data:export",
   },
   {
     href: "/usuarios",
     label: "Usuários",
     subtitle: "Controle de acesso baseado em papéis",
     icon: Users,
-    permission: "user:manage",
+    permission: "user:read",
   },
+];
+
+// Rotas fora do menu que também têm restrição de acesso.
+export const RESTRICTED_ROUTES: { href: string; permission?: Permission }[] = [
+  { href: "/timeline/gerenciar", permission: "timeline:manage" },
+  // perfil só exige estar logado
+  { href: "/perfil" },
 ];
 
 export const HOME_ICON = LayoutGrid;

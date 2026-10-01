@@ -3,8 +3,16 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Camera, ChevronsUpDown, LogOut, MapPinned, PanelLeft, UserCircle } from "lucide-react";
-import { hasPermission } from "@geo/shared";
+import {
+  Camera,
+  ChevronsUpDown,
+  LogIn,
+  LogOut,
+  MapPinned,
+  PanelLeft,
+  UserCircle,
+} from "lucide-react";
+import { ROLE_LABEL, userHasPermission } from "@geo/shared";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,13 +28,6 @@ import { useAuthStore } from "@/lib/auth-store";
 import { useUploadAvatar } from "@/lib/queries/profile";
 import { NAV_ITEMS } from "./nav-config";
 import { toast } from "sonner";
-
-const ROLE_LABEL: Record<string, string> = {
-  admin: "Administrador",
-  verificador: "Verificador",
-  contribuidor: "Contribuidor",
-  leitor: "Leitor",
-};
 
 export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = usePathname();
@@ -58,9 +59,7 @@ export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onTogg
     .map((n) => n[0]?.toUpperCase())
     .join("");
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !user || hasPermission(user.role, item.permission),
-  );
+  const visibleItems = NAV_ITEMS.filter((item) => userHasPermission(user, item.permission));
 
   return (
     <aside
@@ -137,64 +136,77 @@ export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onTogg
       </nav>
 
       <div className="shrink-0 border-t border-sidebar-border/70 p-3">
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="hidden"
-          onChange={handleAvatarFile}
-        />
+        {!user ? (
+          <Button
+            className={cn("w-full gap-2 rounded-none", collapsed && "px-0")}
+            title="Entrar"
+            onClick={() => router.push("/login")}
+          >
+            <LogIn className="h-4 w-4" />
+            {!collapsed && "Entrar"}
+          </Button>
+        ) : (
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={handleAvatarFile}
+            />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                className={cn(
-                  "flex w-full items-center gap-3 p-1.5 text-left transition-colors hover:bg-sidebar-accent/60",
-                  collapsed && "justify-center",
-                )}
-              >
-                <div className="relative shrink-0">
-                  <Avatar size="lg" className="h-11 w-11">
-                    {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.nome} />}
-                    <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                {!collapsed && (
-                  <>
-                    <div className="min-w-0 flex-1 leading-tight">
-                      <p className="truncate text-[13px] font-semibold text-sidebar-foreground">
-                        {user?.nome}
-                      </p>
-                      <p className="truncate text-[11.5px] text-sidebar-foreground/50">
-                        {user ? ROLE_LABEL[user.role] : ""}
-                      </p>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    className={cn(
+                      "flex w-full items-center gap-3 p-1.5 text-left transition-colors hover:bg-sidebar-accent/60",
+                      collapsed && "justify-center",
+                    )}
+                  >
+                    <div className="relative shrink-0">
+                      <Avatar size="lg" className="h-11 w-11">
+                        {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.nome} />}
+                        <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
-                    <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-sidebar-foreground/35" />
-                  </>
-                )}
-              </button>
-            }
-          />
-          <DropdownMenuContent align="end" side="top" className="w-60 rounded-none">
-            <div className="px-2 py-2 text-xs text-muted-foreground">{user?.email}</div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2.5" onClick={() => router.push("/perfil")}>
-              <UserCircle className="h-4 w-4" />
-              Meu perfil
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2.5" onClick={() => fileRef.current?.click()}>
-              <Camera className="h-4 w-4" />
-              Alterar foto
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout} className="gap-2.5 text-destructive">
-              <LogOut className="h-4 w-4" />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                    {!collapsed && (
+                      <>
+                        <div className="min-w-0 flex-1 leading-tight">
+                          <p className="truncate text-[13px] font-semibold text-sidebar-foreground">
+                            {user?.nome}
+                          </p>
+                          <p className="truncate text-[11.5px] text-sidebar-foreground/50">
+                            {user ? ROLE_LABEL[user.role] : ""}
+                          </p>
+                        </div>
+                        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-sidebar-foreground/35" />
+                      </>
+                    )}
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="end" side="top" className="w-60 rounded-none">
+                <div className="px-2 py-2 text-xs text-muted-foreground">{user?.email}</div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2.5" onClick={() => router.push("/perfil")}>
+                  <UserCircle className="h-4 w-4" />
+                  Meu perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2.5" onClick={() => fileRef.current?.click()}>
+                  <Camera className="h-4 w-4" />
+                  Alterar foto
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="gap-2.5 text-destructive">
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
       </div>
     </aside>
   );

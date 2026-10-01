@@ -12,13 +12,13 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { DatasetsService } from "./datasets.service";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { OptionalJwtAuthGuard } from "../auth/guards/optional-jwt-auth.guard";
 import { PermissionsGuard } from "../common/permissions.guard";
 import { RequirePermissions } from "../common/permissions.decorator";
 import { DATASET_MAX_BYTES } from "../common/upload-validation";
 
 @Controller("datasets")
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(OptionalJwtAuthGuard, PermissionsGuard)
 export class DatasetsController {
   constructor(private datasetsService: DatasetsService) {}
 
@@ -45,7 +45,7 @@ export class DatasetsController {
   }
 
   @Get(":id/export")
-  @RequirePermissions("dataset:read")
+  @RequirePermissions("data:export")
   exportGeoJson(@Param("id") id: string) {
     return this.datasetsService.exportGeoJson(id);
   }

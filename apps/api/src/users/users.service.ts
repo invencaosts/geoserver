@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
+import { hasPermission, RESEARCHER_ASSIGNABLE_ROLES, ROLE_LABEL, type AuthUser } from "@geo/shared";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { MinioService } from "../storage/minio.service";
@@ -13,9 +20,6 @@ const SAFE_SELECT = {
   email: true,
   cpf: true,
   role: true,
-  requestedRole: true,
-  roleApprovalStatus: true,
-  perfilContribuidor: true,
   localidade: true,
   quemRepresenta: true,
   telefone: true,
@@ -59,34 +63,33 @@ export class UsersService {
     });
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, actor: AuthUser) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException("Usuário não encontrado");
+    if (user.id === actor.id) {
+      throw new ForbiddenException("Você não pode alterar o próprio papel ou status");
+    }
 
-    return this.prisma.user.update({
-      where: { id },
-      data: {
-        ...dto,
-        // troca manual de papel resolve qualquer solicitação de acesso pendente
-        ...(dto.role ? { requestedRole: dto.role, roleApprovalStatus: "aprovado" as const } : {}),
-      },
-      select: SAFE_SELECT,
-    });
-  }
-
-  async approveRole(id: string, decision: "aprovado" | "rejeitado") {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException("Usuário não encontrado");
-    if (user.roleApprovalStatus !== "pendente") {
-      throw new BadRequestException("Não há solicitação de acesso pendente para este usuário");
+    if (!hasPermission(actor.role, "user:manage")) {
+      // Verificador: só move contas entre visualizador e os dois níveis de pesquisador.
+      if (dto.status !== undefined) {
+        throw new ForbiddenException("Somente um administrador pode ativar ou desativar contas");
+      }
+      if (!RESEARCHER_ASSIGNABLE_ROLES.includes(user.role)) {
+        throw new ForbiddenException(
+          `Somente um administrador pode alterar o papel de ${ROLE_LABEL[user.role]}`,
+        );
+      }
+      if (dto.role && !RESEARCHER_ASSIGNABLE_ROLES.includes(dto.role)) {
+        throw new ForbiddenException(
+          `Somente um administrador pode atribuir o papel ${ROLE_LABEL[dto.role]}`,
+        );
+      }
     }
 
     return this.prisma.user.update({
       where: { id },
-      data: {
-        roleApprovalStatus: decision,
-        role: decision === "aprovado" ? user.requestedRole : user.role,
-      },
+      data: dto,
       select: SAFE_SELECT,
     });
   }

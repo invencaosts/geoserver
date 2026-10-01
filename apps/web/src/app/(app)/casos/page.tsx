@@ -14,7 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 import type { CaseDTO, CasePrioridade, CaseStatus, CaseTipo } from "@geo/shared";
-import { CASE_TIPO_LABEL as TIPO_LABEL, hasPermission } from "@geo/shared";
+import { CASE_TIPO_LABEL as TIPO_LABEL, userHasPermission } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,8 +89,8 @@ export default function CasosPage() {
   });
   const cases = casesPage?.items;
   const user = useAuthStore((s) => s.user);
-  const canCreate = user && hasPermission(user.role, "case:create");
-  const canValidate = user && hasPermission(user.role, "case:validate");
+  const canCreate = userHasPermission(user, "case:create");
+  const canValidate = userHasPermission(user, "case:validate");
 
   useEffect(() => {
     if (!casesPage) return;
@@ -112,7 +112,9 @@ export default function CasosPage() {
         </p>
         <div className="flex items-end gap-2">
           <div className="min-w-44">
-            <Label htmlFor="case-status-filter" className="sr-only">Filtrar casos por status</Label>
+            <Label htmlFor="case-status-filter" className="sr-only">
+              Filtrar casos por status
+            </Label>
             <SelectField
               id="case-status-filter"
               value={statusFilter}
@@ -155,88 +157,97 @@ export default function CasosPage() {
         {/* tabela principal */}
         <div className="col-span-2 flex min-h-0 flex-col border-r border-border">
           <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full border-collapse">
-            <thead className="sticky top-0 bg-muted">
-              <tr>
-                <th className="w-10 border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  #
-                </th>
-                <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Caso
-                </th>
-                <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Local
-                </th>
-                <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Prioridade
-                </th>
-                <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Status
-                </th>
-                <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Anexo
-                </th>
-                <th className="border-b border-border px-3 py-2.5 text-right text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {casesLoading &&
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td colSpan={7} className="border-b border-border p-3">
-                      <Skeleton className="h-4 w-full" />
+            <table className="w-full border-collapse">
+              <thead className="sticky top-0 bg-muted">
+                <tr>
+                  <th className="w-10 border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    #
+                  </th>
+                  <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Caso
+                  </th>
+                  <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Local
+                  </th>
+                  <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Prioridade
+                  </th>
+                  <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="border-b border-border px-3 py-2.5 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Anexo
+                  </th>
+                  <th className="border-b border-border px-3 py-2.5 text-right text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {casesLoading &&
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={7} className="border-b border-border p-3">
+                        <Skeleton className="h-4 w-full" />
+                      </td>
+                    </tr>
+                  ))}
+
+                {!casesLoading && casesError && (
+                  <tr>
+                    <td colSpan={7} className="py-14 text-center">
+                      <AlertCircle className="mx-auto mb-2 h-7 w-7 text-destructive/70" />
+                      <p className="text-sm font-medium">Não foi possível carregar os casos.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {casesErrorValue instanceof Error
+                          ? casesErrorValue.message
+                          : "Tente novamente em instantes."}
+                      </p>
+                      <Button
+                        className="mt-3"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetchCases()}
+                      >
+                        Tentar novamente
+                      </Button>
                     </td>
                   </tr>
-                ))}
+                )}
 
-              {!casesLoading && casesError && (
-                <tr>
-                  <td colSpan={7} className="py-14 text-center">
-                    <AlertCircle className="mx-auto mb-2 h-7 w-7 text-destructive/70" />
-                    <p className="text-sm font-medium">Não foi possível carregar os casos.</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {casesErrorValue instanceof Error ? casesErrorValue.message : "Tente novamente em instantes."}
-                    </p>
-                    <Button className="mt-3" variant="outline" size="sm" onClick={() => refetchCases()}>
-                      Tentar novamente
-                    </Button>
-                  </td>
-                </tr>
-              )}
+                {!casesLoading && !casesError && cases?.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-16 text-center">
+                      <ShieldAlert className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
+                      <p className="text-sm text-muted-foreground">
+                        {statusFilter === "todos"
+                          ? "Nenhum caso registrado ainda."
+                          : `Nenhum caso com status “${STATUS_LABEL[statusFilter]}”.`}
+                      </p>
+                    </td>
+                  </tr>
+                )}
 
-              {!casesLoading && !casesError && cases?.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-16 text-center">
-                    <ShieldAlert className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">
-                      {statusFilter === "todos"
-                        ? "Nenhum caso registrado ainda."
-                        : `Nenhum caso com status “${STATUS_LABEL[statusFilter]}”.`}
-                    </p>
-                  </td>
-                </tr>
-              )}
-
-              {!casesError && cases?.map((c, i) => (
-                <CaseRow
-                  key={c.id}
-                  index={(page - 1) * (casesPage?.limit ?? 20) + i + 1}
-                  caseItem={c}
-                  onView={() => setSelectedCaseId(c.id)}
-                  canUpload={user?.role === "admin" || c.createdById === user?.id}
-                />
-              ))}
-            </tbody>
-          </table>
+                {!casesError &&
+                  cases?.map((c, i) => (
+                    <CaseRow
+                      key={c.id}
+                      index={(page - 1) * (casesPage?.limit ?? 20) + i + 1}
+                      caseItem={c}
+                      onView={() => setSelectedCaseId(c.id)}
+                      canUpload={!!user && (user.role === "admin" || c.createdById === user.id)}
+                    />
+                  ))}
+              </tbody>
+            </table>
           </div>
 
           {!casesLoading && !casesError && casesPage && casesPage.total > 0 && (
             <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-3 py-2">
               <p className="text-xs text-muted-foreground" aria-live="polite">
                 {casesFetching ? "Atualizando… " : ""}
-                {casesPage.total} {casesPage.total === 1 ? "caso" : "casos"} · página {casesPage.page} de {casesPage.totalPages}
+                {casesPage.total} {casesPage.total === 1 ? "caso" : "casos"} · página{" "}
+                {casesPage.page} de {casesPage.totalPages}
               </p>
               <div className="flex items-center gap-1">
                 <Button
@@ -381,7 +392,11 @@ function CaseRow({
         {String(index).padStart(2, "0")}
       </td>
       <td className="border-b border-border px-3 py-3">
-        <button type="button" className="text-left text-[13px] font-semibold hover:text-primary hover:underline" onClick={onView}>
+        <button
+          type="button"
+          className="text-left text-[13px] font-semibold hover:text-primary hover:underline"
+          onClick={onView}
+        >
           {caseItem.nome}
         </button>
         <p className="text-[11px] text-muted-foreground">{TIPO_LABEL[caseItem.tipo as CaseTipo]}</p>
@@ -416,7 +431,9 @@ function CaseRow({
                 {
                   onSuccess: () => toast.success("Anexo enviado"),
                   onError: (uploadError) =>
-                    toast.error(uploadError instanceof Error ? uploadError.message : "Falha ao enviar anexo"),
+                    toast.error(
+                      uploadError instanceof Error ? uploadError.message : "Falha ao enviar anexo",
+                    ),
                 },
               );
             }
@@ -519,7 +536,9 @@ function formatDate(value: string) {
 function DetailItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</dt>
+      <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </dt>
       <dd className="mt-1 text-[13px]">{children || "Não informado"}</dd>
     </div>
   );
@@ -557,7 +576,9 @@ function CaseDetailsDialog({
       setNextStatus("");
       setNote("");
     } catch (mutationError) {
-      toast.error(mutationError instanceof Error ? mutationError.message : "Falha ao atualizar o caso");
+      toast.error(
+        mutationError instanceof Error ? mutationError.message : "Falha ao atualizar o caso",
+      );
     }
   }
 
@@ -601,7 +622,12 @@ function CaseDetailsDialog({
           <>
             <DialogHeader className="border-b border-border pb-4 pr-10">
               <div className="flex flex-wrap items-center gap-2">
-                <span className={cn("border-y border-current py-0.5 text-[10.5px] font-bold uppercase tracking-wide", STAMP_TONE[detail.status])}>
+                <span
+                  className={cn(
+                    "border-y border-current py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
+                    STAMP_TONE[detail.status],
+                  )}
+                >
                   {STATUS_LABEL[detail.status]}
                 </span>
                 <span className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -610,18 +636,24 @@ function CaseDetailsDialog({
               </div>
               <h2 className="font-display text-2xl font-bold leading-tight">{detail.nome}</h2>
               <DialogDescription>
-                Consulte as informações registradas, os documentos e todo o histórico de validação deste caso.
+                Consulte as informações registradas, os documentos e todo o histórico de validação
+                deste caso.
               </DialogDescription>
             </DialogHeader>
 
             <div className="grid gap-5 md:grid-cols-2">
               <section className="border border-border p-4" aria-labelledby="case-general-heading">
-                <h3 id="case-general-heading" className="mb-4 font-display text-base font-bold">Informações gerais</h3>
+                <h3 id="case-general-heading" className="mb-4 font-display text-base font-bold">
+                  Informações gerais
+                </h3>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
                   <DetailItem label="Identificador">{detail.id}</DetailItem>
                   <DetailItem label="Prioridade">{PRIORIDADE_LABEL[detail.prioridade]}</DetailItem>
                   <DetailItem label="Autor">
-                    <span className="inline-flex items-center gap-1.5"><UserRound className="h-3.5 w-3.5" />{detail.createdBy.nome}</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <UserRound className="h-3.5 w-3.5" />
+                      {detail.createdBy.nome}
+                    </span>
                   </DetailItem>
                   <DetailItem label="Status atual">{STATUS_LABEL[detail.status]}</DetailItem>
                   <DetailItem label="Criado em">{formatDate(detail.createdAt)}</DetailItem>
@@ -630,12 +662,18 @@ function CaseDetailsDialog({
               </section>
 
               <section className="border border-border p-4" aria-labelledby="case-location-heading">
-                <h3 id="case-location-heading" className="mb-4 font-display text-base font-bold">Localização</h3>
+                <h3 id="case-location-heading" className="mb-4 font-display text-base font-bold">
+                  Localização
+                </h3>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
                   <DetailItem label="Município">{detail.municipio}</DetailItem>
                   <DetailItem label="Estado">{detail.estado}</DetailItem>
-                  <DetailItem label="Latitude">{detail.lat != null ? String(detail.lat) : "Não informada"}</DetailItem>
-                  <DetailItem label="Longitude">{detail.lng != null ? String(detail.lng) : "Não informada"}</DetailItem>
+                  <DetailItem label="Latitude">
+                    {detail.lat != null ? String(detail.lat) : "Não informada"}
+                  </DetailItem>
+                  <DetailItem label="Longitude">
+                    {detail.lng != null ? String(detail.lng) : "Não informada"}
+                  </DetailItem>
                 </dl>
                 {detail.lat != null && detail.lng != null && (
                   <p className="mt-4 flex items-center gap-1.5 border-t border-dotted border-border pt-3 text-xs text-muted-foreground">
@@ -647,14 +685,20 @@ function CaseDetailsDialog({
             </div>
 
             <section className="border border-border p-4" aria-labelledby="case-report-heading">
-              <h3 id="case-report-heading" className="mb-4 font-display text-base font-bold">Relato e evidências</h3>
+              <h3 id="case-report-heading" className="mb-4 font-display text-base font-bold">
+                Relato e evidências
+              </h3>
               <dl className="grid gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <DetailItem label="Descrição">
-                    <span className="whitespace-pre-wrap leading-relaxed">{detail.descricao || "Não informada"}</span>
+                    <span className="whitespace-pre-wrap leading-relaxed">
+                      {detail.descricao || "Não informada"}
+                    </span>
                   </DetailItem>
                 </div>
-                <DetailItem label="Fonte dos dados">{detail.fonteDados || "Não informada"}</DetailItem>
+                <DetailItem label="Fonte dos dados">
+                  {detail.fonteDados || "Não informada"}
+                </DetailItem>
                 <DetailItem label="Denunciante">{detail.denunciante || "Não informado"}</DetailItem>
                 <div className="md:col-span-2">
                   <DetailItem label="Anexo">
@@ -677,44 +721,72 @@ function CaseDetailsDialog({
             </section>
 
             <section className="border border-border p-4" aria-labelledby="case-history-heading">
-              <h3 id="case-history-heading" className="mb-4 font-display text-base font-bold">Histórico de status</h3>
+              <h3 id="case-history-heading" className="mb-4 font-display text-base font-bold">
+                Histórico de status
+              </h3>
               {detail.statusHistory.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma alteração de status registrada.</p>
+                <p className="text-sm text-muted-foreground">
+                  Nenhuma alteração de status registrada.
+                </p>
               ) : (
                 <ol className="space-y-0">
                   {detail.statusHistory.map((entry, index) => (
-                    <li key={entry.id} className="relative border-l border-border pb-4 pl-5 last:pb-0">
-                      <span className="absolute -left-1 top-1.5 h-2 w-2 bg-primary" aria-hidden="true" />
+                    <li
+                      key={entry.id}
+                      className="relative border-l border-border pb-4 pl-5 last:pb-0"
+                    >
+                      <span
+                        className="absolute -left-1 top-1.5 h-2 w-2 bg-primary"
+                        aria-hidden="true"
+                      />
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <p className="text-[13px] font-semibold">
                           {entry.fromStatus
                             ? `${STATUS_LABEL[entry.fromStatus]} → ${STATUS_LABEL[entry.toStatus]}`
                             : STATUS_LABEL[entry.toStatus]}
                         </p>
-                        <time className="flex items-center gap-1 text-[11px] text-muted-foreground" dateTime={entry.createdAt}>
-                          <Clock3 className="h-3 w-3" />{formatDate(entry.createdAt)}
+                        <time
+                          className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                          dateTime={entry.createdAt}
+                        >
+                          <Clock3 className="h-3 w-3" />
+                          {formatDate(entry.createdAt)}
                         </time>
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {entry.changedBy?.nome || (index === 0 ? detail.createdBy.nome : "Usuário não identificado")}
+                        {entry.changedBy?.nome ||
+                          (index === 0 ? detail.createdBy.nome : "Usuário não identificado")}
                       </p>
-                      {entry.note && <p className="mt-1 whitespace-pre-wrap text-[12.5px]">{entry.note}</p>}
+                      {entry.note && (
+                        <p className="mt-1 whitespace-pre-wrap text-[12.5px]">{entry.note}</p>
+                      )}
                     </li>
                   ))}
                 </ol>
               )}
             </section>
 
-            <section className="border-2 border-foreground p-4" aria-labelledby="case-validation-heading">
-              <h3 id="case-validation-heading" className="font-display text-base font-bold">Validação do caso</h3>
+            <section
+              className="border-2 border-foreground p-4"
+              aria-labelledby="case-validation-heading"
+            >
+              <h3 id="case-validation-heading" className="font-display text-base font-bold">
+                Validação do caso
+              </h3>
               {!canValidate ? (
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Seu perfil possui acesso somente à consulta. A alteração de status é reservada a verificadores e administradores.
+                  Seu perfil possui acesso somente à consulta. A alteração de status é reservada a
+                  verificadores e administradores.
                 </p>
               ) : options.length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">Não há transições disponíveis para este status.</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Não há transições disponíveis para este status.
+                </p>
               ) : (
-                <form onSubmit={handleValidation} className="mt-4 grid gap-3 md:grid-cols-[minmax(190px,0.7fr)_1.3fr_auto] md:items-end">
+                <form
+                  onSubmit={handleValidation}
+                  className="mt-4 grid gap-3 md:grid-cols-[minmax(190px,0.7fr)_1.3fr_auto] md:items-end"
+                >
                   <div className="space-y-2">
                     <Label htmlFor="case-next-status">Novo status</Label>
                     <SelectField
@@ -723,7 +795,10 @@ function CaseDetailsDialog({
                       onValueChange={setNextStatus}
                       placeholder="Selecione"
                       disabled={updateStatus.isPending}
-                      options={options.map((status) => ({ value: status, label: STATUS_LABEL[status] }))}
+                      options={options.map((status) => ({
+                        value: status,
+                        label: STATUS_LABEL[status],
+                      }))}
                     />
                   </div>
                   <div className="space-y-2">

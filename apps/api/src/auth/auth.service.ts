@@ -51,7 +51,6 @@ export class AuthService {
 
     const senhaHash = await bcrypt.hash(dto.senha, 10);
     const isFirstUser = (await this.prisma.user.count()) === 0;
-    const requestedRole = dto.role ?? "leitor";
 
     const user = await this.prisma.user.create({
       data: {
@@ -60,13 +59,9 @@ export class AuthService {
         email: dto.email,
         cpf: dto.cpf,
         senhaHash,
-        // primeiro usuário do sistema vira admin automaticamente
-        role: isFirstUser ? "admin" : "leitor",
-        requestedRole: isFirstUser ? "admin" : requestedRole,
-        // acesso além de "leitor" precisa validação de usuário com role superior
-        roleApprovalStatus: isFirstUser || requestedRole === "leitor" ? "aprovado" : "pendente",
-        perfilContribuidor: dto.perfilContribuidor,
-        quemRepresenta: dto.quemRepresenta,
+        // primeiro usuário do sistema vira admin; os demais entram como visualizador
+        // até um admin ou verificador definir outro papel
+        role: isFirstUser ? "admin" : "visualizador",
       },
     });
 

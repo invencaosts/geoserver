@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Landmark, Search, Settings2 } from "lucide-react";
-import { hasPermission } from "@geo/shared";
+import { userHasPermission } from "@geo/shared";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth-store";
 import {
@@ -29,7 +29,7 @@ const MODO_OPTIONS: { value: TimelineModo; label: string }[] = [
 
 export default function TimelinePage() {
   const user = useAuthStore((s) => s.user);
-  const canManage = user && hasPermission(user.role, "timeline:manage");
+  const canManage = userHasPermission(user, "timeline:manage");
   const [modo, setModo] = useState<TimelineModo>("todos");
   const [estadosSelecionados, setEstadosSelecionados] = useState<string[]>([]);
   const [estadoQuery, setEstadoQuery] = useState("");

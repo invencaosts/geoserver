@@ -1,6 +1,39 @@
 // Tipos compartilhados entre apps/api e apps/web
 
-export type RoleName = "admin" | "verificador" | "contribuidor" | "leitor";
+// Do maior para o menor nível de acesso. "visualizador" é também o papel de quem
+// navega sem login e o papel inicial de toda conta nova.
+export const ROLES = [
+  "admin",
+  "verificador",
+  "pesquisador_envio_download",
+  "pesquisador_envio",
+  "visualizador",
+] as const;
+
+export type RoleName = (typeof ROLES)[number];
+
+export const ROLE_LABEL: Record<RoleName, string> = {
+  admin: "Administrador",
+  verificador: "Verificador",
+  pesquisador_envio_download: "Pesquisador (envio e download)",
+  pesquisador_envio: "Pesquisador (envio de dados)",
+  visualizador: "Visualizador",
+};
+
+export const ROLE_DESCRIPTION: Record<RoleName, string> = {
+  admin: "Acesso total, incluindo gestão de usuários e camadas",
+  verificador: "Valida casos, gerencia a Linha do Tempo e define os pesquisadores",
+  pesquisador_envio_download: "Envia casos e datasets e baixa dados e relatórios",
+  pesquisador_envio: "Envia casos e datasets, sem baixar dados",
+  visualizador: "Só visualiza o site",
+};
+
+// Papéis que o verificador pode atribuir; o admin atribui qualquer um.
+export const RESEARCHER_ASSIGNABLE_ROLES: RoleName[] = [
+  "pesquisador_envio_download",
+  "pesquisador_envio",
+  "visualizador",
+];
 
 export const PERMISSIONS = [
   "layer:read",
@@ -9,29 +42,39 @@ export const PERMISSIONS = [
   "dataset:read",
   "dataset:write",
   "dataset:delete",
+  "data:export",
   "case:read",
   "case:create",
   "case:validate",
+  "user:read",
+  "user:assign_researcher",
   "user:manage",
   "timeline:manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
 
+const VIEW_PERMISSIONS: Permission[] = ["layer:read", "dataset:read", "case:read"];
+const SEND_PERMISSIONS: Permission[] = ["case:create", "dataset:write"];
+
 export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
   admin: [...PERMISSIONS],
   verificador: [
-    "layer:read",
-    "dataset:read",
-    "dataset:write",
-    "case:read",
-    "case:create",
+    ...VIEW_PERMISSIONS,
+    ...SEND_PERMISSIONS,
+    "data:export",
     "case:validate",
     "timeline:manage",
+    "user:read",
+    "user:assign_researcher",
   ],
-  contribuidor: ["layer:read", "dataset:read", "case:read", "case:create"],
-  leitor: ["layer:read", "dataset:read", "case:read"],
+  pesquisador_envio_download: [...VIEW_PERMISSIONS, ...SEND_PERMISSIONS, "data:export"],
+  pesquisador_envio: [...VIEW_PERMISSIONS, ...SEND_PERMISSIONS],
+  visualizador: [...VIEW_PERMISSIONS],
 };
+
+// Quem navega sem login tem as permissões do visualizador.
+export const ANONYMOUS_ROLE: RoleName = "visualizador";
 
 export interface AuthUser {
   id: string;
@@ -42,32 +85,8 @@ export interface AuthUser {
   avatarUrl?: string | null;
 }
 
-export type RoleApprovalStatus = "pendente" | "aprovado" | "rejeitado";
-
-export type PerfilContribuidor =
-  | "pesquisador"
-  | "militante_movimento_social"
-  | "partido_politico"
-  | "servidor_publico"
-  | "lideranca_comunitaria"
-  | "movimento_social_organizado"
-  | "conselhos_ongs";
-
-export const PERFIL_CONTRIBUIDOR_LABEL: Record<PerfilContribuidor, string> = {
-  pesquisador: "Pesquisador",
-  militante_movimento_social: "Militante de movimento social",
-  partido_politico: "Partido político",
-  servidor_publico: "Servidor público",
-  lideranca_comunitaria: "Liderança comunitária",
-  movimento_social_organizado: "Movimento social organizado",
-  conselhos_ongs: "Conselhos e ONGs",
-};
-
 export interface UserDTO extends AuthUser {
   cpf?: string | null;
-  requestedRole: RoleName;
-  roleApprovalStatus: RoleApprovalStatus;
-  perfilContribuidor?: PerfilContribuidor | null;
   localidade?: string | null;
   nomeSocial?: string | null;
   quemRepresenta?: string | null;
@@ -213,6 +232,14 @@ export interface InstituicaoDTO {
 
 export function hasPermission(role: RoleName, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}
+
+// Mesma checagem, tratando ausência de usuário como visitante anônimo.
+export function userHasPermission(
+  user: { role: RoleName } | null | undefined,
+  permission: Permission,
+): boolean {
+  return hasPermission(user?.role ?? ANONYMOUS_ROLE, permission);
 }
 
 export type TimelineEscopo = "nacional" | "estadual";

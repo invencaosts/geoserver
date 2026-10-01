@@ -2,12 +2,12 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@n
 import { LayersService } from "./layers.service";
 import { CreateLayerDto } from "./dto/create-layer.dto";
 import { UpdateLayerDto } from "./dto/update-layer.dto";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { OptionalJwtAuthGuard } from "../auth/guards/optional-jwt-auth.guard";
 import { PermissionsGuard } from "../common/permissions.guard";
 import { RequirePermissions } from "../common/permissions.decorator";
 
 @Controller("layers")
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(OptionalJwtAuthGuard, PermissionsGuard)
 export class LayersController {
   constructor(private layersService: LayersService) {}
 

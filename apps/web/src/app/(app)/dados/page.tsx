@@ -26,12 +26,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { userHasPermission } from "@geo/shared";
 import {
   useDatasets,
   useDeleteDataset,
+  useDownloadDataset,
   useUploadDataset,
-  datasetExportUrl,
 } from "@/lib/queries/datasets";
+import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -56,6 +58,11 @@ const STATUS_TONE: Record<string, { icon: string; chip: string }> = {
 export default function DadosPage() {
   const { data: datasets, isLoading } = useDatasets();
   const deleteDataset = useDeleteDataset();
+  const downloadDataset = useDownloadDataset();
+  const user = useAuthStore((s) => s.user);
+  const canUpload = userHasPermission(user, "dataset:write");
+  const canExport = userHasPermission(user, "data:export");
+  const canDelete = userHasPermission(user, "dataset:delete");
 
   const totalRegistros = datasets?.reduce((sum, d) => sum + d.registros, 0) ?? 0;
   const ativos = datasets?.filter((d) => d.status === "active").length ?? 0;
@@ -72,7 +79,7 @@ export default function DadosPage() {
             loading={isLoading}
           />
         </div>
-        <UploadDialog />
+        {canUpload && <UploadDialog />}
       </div>
 
       <div className="grid gap-2.5">
@@ -141,26 +148,34 @@ export default function DadosPage() {
                   >
                     {STATUS_LABEL[d.status]}
                   </Badge>
-                  {d.status === "active" && (
+                  {canExport && d.status === "active" && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      nativeButton={false}
-                      render={
-                        <a href={datasetExportUrl(d.id)} target="_blank" rel="noreferrer">
-                          <Download className="h-4 w-4" />
-                        </a>
+                      title="Baixar GeoJSON"
+                      disabled={downloadDataset.isPending}
+                      onClick={() =>
+                        toast.promise(downloadDataset.mutateAsync({ id: d.id, nome: d.nome }), {
+                          loading: "Preparando download...",
+                          success: "Download iniciado",
+                          error: (err) =>
+                            err instanceof Error ? err.message : "Falha no download",
+                        })
                       }
-                    />
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteDataset.mutate(d.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteDataset.mutate(d.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

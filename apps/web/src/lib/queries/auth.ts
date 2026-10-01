@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import type { AuthUser, PerfilContribuidor, RoleName } from "@geo/shared";
+import type { AuthUser } from "@geo/shared";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 
@@ -16,9 +16,6 @@ export interface RegisterPayload {
   email: string;
   cpf: string;
   senha: string;
-  role?: RoleName;
-  perfilContribuidor?: PerfilContribuidor;
-  quemRepresenta?: string;
 }
 
 export function useLogin() {
