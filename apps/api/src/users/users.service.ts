@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { MinioService } from "../storage/minio.service";
@@ -31,6 +31,8 @@ const SAFE_SELECT = {
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     private prisma: PrismaService,
     private minio: MinioService,
@@ -93,12 +95,24 @@ export class UsersService {
     if (!file) throw new BadRequestException("Envie uma imagem");
     const validated = validateAvatarUpload(file);
     const key = `users/${userId}/${randomUUID()}.${validated.extension}`;
+    const previous = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
     const avatarUrl = await this.minio.uploadAvatar(key, file.buffer, validated.contentType);
 
-    return this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },
       select: SAFE_SELECT,
     });
+
+    // a foto nova já está salva; uma falha aqui só deixa a antiga órfã no bucket
+    if (previous?.avatarUrl && previous.avatarUrl !== avatarUrl) {
+      await this.minio.deleteAvatarByUrl(previous.avatarUrl, userId).catch((error) => {
+        this.logger.error(`Falha ao remover avatar antigo do usuário ${userId}`, error);
+      });
+    }
+    return updated;
   }
 }

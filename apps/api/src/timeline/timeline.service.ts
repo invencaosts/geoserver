@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import type { TimelineJsonDTO, TimelineJsEvent } from "@geo/shared";
 import { PrismaService } from "../prisma/prisma.service";
@@ -13,6 +13,8 @@ const MEDIA_EXTENSOES = ["pdf", "png", "jpg", "jpeg", "webp", "svg"];
 
 @Injectable()
 export class TimelineService {
+  private readonly logger = new Logger(TimelineService.name);
+
   constructor(
     private prisma: PrismaService,
     private minio: MinioService,
@@ -60,7 +62,7 @@ export class TimelineService {
 
     const escopo = dto.escopo ?? existing.escopo;
 
-    return this.prisma.timelineEvent.update({
+    const updated = await this.prisma.timelineEvent.update({
       where: { id },
       data: {
         escopo,
@@ -80,13 +82,28 @@ export class TimelineService {
         type: dto.type !== undefined ? dto.type || null : existing.type,
       },
     });
+
+    if (existing.mediaUrl !== mediaUrl) await this.discardMedia(existing.mediaUrl);
+    return updated;
   }
 
   async removeAdmin(id: string) {
     const existing = await this.prisma.timelineEvent.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException("Evento não encontrado");
     await this.prisma.timelineEvent.delete({ where: { id } });
+    await this.discardMedia(existing.mediaUrl);
     return { success: true };
+  }
+
+  /** Apaga do MinIO a mídia que deixou de ser usada; o evento já foi salvo, então falhas só vão para o log. */
+  private async discardMedia(mediaUrl: string | null) {
+    if (!mediaUrl) return;
+    try {
+      const stillUsed = await this.prisma.timelineEvent.count({ where: { mediaUrl } });
+      if (stillUsed === 0) await this.minio.deleteTimelineMediaByUrl(mediaUrl);
+    } catch (error) {
+      this.logger.error(`Falha ao remover mídia ${mediaUrl} da timeline`, error);
+    }
   }
 
   private async uploadMedia(file: Express.Multer.File): Promise<string> {

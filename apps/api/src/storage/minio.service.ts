@@ -91,4 +91,23 @@ export class MinioService implements OnModuleInit {
   async deleteAttachment(key: string) {
     await this.client.removeObject(ATTACHMENTS_BUCKET, key);
   }
+
+  /** Remove o avatar a partir da URL pública, desde que pertença ao próprio usuário. */
+  async deleteAvatarByUrl(url: string, userId: string) {
+    const key = this.keyFromPublicUrl(url, AVATAR_BUCKET, `users/${userId}/`);
+    if (key) await this.client.removeObject(AVATAR_BUCKET, key);
+  }
+
+  /** Remove uma mídia enviada pela gestão da timeline; as do seed ficam em outro bucket e são ignoradas. */
+  async deleteTimelineMediaByUrl(url: string) {
+    const key = this.keyFromPublicUrl(url, ATTACHMENTS_BUCKET, "timeline/");
+    if (key) await this.client.removeObject(ATTACHMENTS_BUCKET, key);
+  }
+
+  private keyFromPublicUrl(url: string, bucket: string, prefix: string) {
+    const base = `${this.publicUrl}/${bucket}/`;
+    if (!url.startsWith(base)) return null;
+    const key = url.slice(base.length);
+    return key.startsWith(prefix) ? key : null;
+  }
 }
