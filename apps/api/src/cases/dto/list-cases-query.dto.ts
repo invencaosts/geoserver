@@ -2,7 +2,7 @@ import { Type } from "class-transformer";
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import type { CaseStatus, CaseTipo } from "@geo/shared";
 
-const STATUSES: CaseStatus[] = ["pendente", "em_verificacao", "validado", "rejeitado"];
+const STATUSES: CaseStatus[] = ["rascunho", "pendente", "em_verificacao", "validado", "rejeitado"];
 const TIPOS: CaseTipo[] = ["institucional", "titulo_falso", "car"];
 
 export class ListCasesQueryDto {

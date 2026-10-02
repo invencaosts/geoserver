@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, HttpCode, Post, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
@@ -13,6 +13,11 @@ export class AuthController {
   @Post("register")
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
+  }
+
+  @Post("bootstrap-admin")
+  bootstrapAdmin(@Body() dto: RegisterDto, @Headers("x-bootstrap-secret") secret?: string) {
+    return this.authService.bootstrapAdmin(dto, secret);
   }
 
   @Post("login")

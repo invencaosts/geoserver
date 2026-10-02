@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { CaseStatus } from "@geo/shared";
+import type { AuthUser, CaseStatus, CaseTipo } from "@geo/shared";
 import { stringify } from "csv-stringify/sync";
 import PDFDocument from "pdfkit";
 import { CasesService } from "../cases/cases.service";
@@ -17,17 +17,44 @@ export class ReportsService {
     private datasetsService: DatasetsService,
   ) {}
 
-  async casosCsv(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
-    const casos = await this.casesService.findForExport(filters);
+  async casosCsv(
+    filters: { status?: CaseStatus; municipio?: string; tipo?: CaseTipo },
+    user: AuthUser,
+  ) {
+    const casos = await this.casesService.findDetailedForExport(filters, user);
     return stringify(
       casos.map((c) => ({
         nome: safeCsvCell(c.nome),
         tipo: safeCsvCell(c.tipo),
-        municipio: safeCsvCell(c.municipio),
+        municipio: safeCsvCell(c.municipio ?? ""),
         estado: safeCsvCell(c.estado),
         prioridade: safeCsvCell(c.prioridade),
         status: safeCsvCell(c.status),
         criadoPor: safeCsvCell(c.createdBy.nome),
+        questionario: safeCsvCell(JSON.stringify(c.contribution ?? {})),
+        fontes: safeCsvCell(
+          c.sources
+            .map((source) => `${source.titulo} [${source.grauPublicidade ?? "restrito"}]`)
+            .join("; "),
+        ),
+        facetas: safeCsvCell(
+          c.facets
+            .map(
+              (facet) =>
+                `${facet.categoria}: ${facet.label}${facet.valorOutro ? ` (${facet.valorOutro})` : ""}`,
+            )
+            .join("; "),
+        ),
+        referenciasEspaciais: safeCsvCell(
+          c.spatialReferences
+            .map((reference) => `${reference.tipo}: ${reference.valor}`)
+            .join("; "),
+        ),
+        documentos: c.documents.length,
+        datasets: c.datasets.length,
+        declaracaoVersao: safeCsvCell(c.declarationVersion ?? ""),
+        declaracaoAceitaEm:
+          c.declarationAcceptedAt?.toISOString?.() ?? c.declarationAcceptedAt ?? "",
         criadoEm: c.createdAt.toISOString(),
       })),
       {
@@ -40,16 +67,27 @@ export class ReportsService {
           { key: "prioridade", header: "Prioridade" },
           { key: "status", header: "Status" },
           { key: "criadoPor", header: "Criado por" },
+          { key: "questionario", header: "Questionário" },
+          { key: "fontes", header: "Fontes visíveis" },
+          { key: "facetas", header: "Categorias" },
+          { key: "referenciasEspaciais", header: "Referências espaciais" },
+          { key: "documentos", header: "Documentos visíveis" },
+          { key: "datasets", header: "Datasets visíveis" },
+          { key: "declaracaoVersao", header: "Versão da declaração" },
+          { key: "declaracaoAceitaEm", header: "Declaração aceita em" },
           { key: "criadoEm", header: "Criado em" },
         ],
       },
     );
   }
 
-  async casosPdf(filters: { status?: CaseStatus; municipio?: string; tipo?: string }) {
+  async casosPdf(
+    filters: { status?: CaseStatus; municipio?: string; tipo?: CaseTipo },
+    user: AuthUser,
+  ) {
     const [dashboard, casos] = await Promise.all([
-      this.casesService.getDashboard(),
-      this.casesService.findForExport(filters),
+      this.casesService.getDashboard(user),
+      this.casesService.findDetailedForExport(filters, user),
     ]);
 
     const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -94,7 +132,10 @@ export class ReportsService {
     doc.fontSize(9);
     for (const c of casos) {
       doc.text(
-        `${c.nome} — ${c.municipio}/${c.estado} — ${c.tipo} — ${c.status} — prioridade ${c.prioridade}`,
+        `${c.nome} — ${c.municipio ?? "localização restrita"}/${c.estado} — ${c.tipo} — ${c.status} — prioridade ${c.prioridade}`,
+      );
+      doc.text(
+        `Fontes visíveis: ${c.sources.length}; categorias: ${c.facets.length}; referências espaciais: ${c.spatialReferences.length}; documentos: ${c.documents.length}; datasets: ${c.datasets.length}`,
       );
     }
 
@@ -102,8 +143,8 @@ export class ReportsService {
     return doc;
   }
 
-  async datasetsCsv() {
-    const datasets = await this.datasetsService.findAll();
+  async datasetsCsv(user: AuthUser) {
+    const datasets = await this.datasetsService.findAll(user);
     return stringify(
       datasets.map((d) => ({
         nome: safeCsvCell(d.nome),
@@ -111,6 +152,11 @@ export class ReportsService {
         tipoGeometria: safeCsvCell(d.tipoGeometria),
         status: safeCsvCell(d.status),
         registros: d.registros,
+        caso: safeCsvCell(d.caseId ?? ""),
+        visibilidade: safeCsvCell(d.visibility),
+        publicacaoSolicitada: d.requestedPublic ? "sim" : "não",
+        codigoCar: safeCsvCell(d.codigoCar ?? ""),
+        codigoSigef: safeCsvCell(d.codigoSigef ?? ""),
         criadoEm: d.createdAt.toISOString(),
       })),
       {
@@ -121,14 +167,19 @@ export class ReportsService {
           { key: "tipoGeometria", header: "Tipo de geometria" },
           { key: "status", header: "Status" },
           { key: "registros", header: "Registros" },
+          { key: "caso", header: "Caso vinculado" },
+          { key: "visibilidade", header: "Visibilidade" },
+          { key: "publicacaoSolicitada", header: "Publicação solicitada" },
+          { key: "codigoCar", header: "Código CAR" },
+          { key: "codigoSigef", header: "Código SIGEF" },
           { key: "criadoEm", header: "Criado em" },
         ],
       },
     );
   }
 
-  async datasetsPdf() {
-    const datasets = await this.datasetsService.findAll();
+  async datasetsPdf(user: AuthUser) {
+    const datasets = await this.datasetsService.findAll(user);
     const doc = new PDFDocument({ margin: 50, size: "A4" });
 
     doc.fontSize(18).text("Inventário de Datasets");
@@ -143,7 +194,7 @@ export class ReportsService {
     if (datasets.length === 0) doc.text("Nenhum dataset cadastrado.");
     for (const d of datasets) {
       doc.text(
-        `${d.nome} — ${d.formato} (${d.tipoGeometria}) — ${d.status} — ${d.registros} registros`,
+        `${d.nome} — ${d.formato} (${d.tipoGeometria}) — ${d.status} — ${d.registros} registros — ${d.visibility}${d.codigoCar ? ` — CAR ${d.codigoCar}` : ""}${d.codigoSigef ? ` — SIGEF ${d.codigoSigef}` : ""}`,
       );
     }
 

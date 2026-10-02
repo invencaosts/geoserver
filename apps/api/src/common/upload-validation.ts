@@ -54,9 +54,7 @@ export function validateAvatarUpload(file: Express.Multer.File): ValidatedUpload
   return rejected("Formato inválido. Use uma imagem JPEG, PNG ou WebP válida");
 }
 
-export async function validateCaseAttachment(
-  file: Express.Multer.File,
-): Promise<ValidatedUpload> {
+export async function validateCaseAttachment(file: Express.Multer.File): Promise<ValidatedUpload> {
   const extension = file.originalname.split(".").pop()?.toLowerCase() ?? "";
 
   if (extension === "pdf" && file.buffer.subarray(0, 5).toString("ascii") === "%PDF-") {
@@ -72,12 +70,12 @@ export async function validateCaseAttachment(
   return rejected("Anexo inválido. Envie um PDF válido ou um KMZ que contenha um arquivo KML");
 }
 
-export async function validateDatasetUpload(
-  file: Express.Multer.File,
-): Promise<ValidatedUpload> {
+export async function validateDatasetUpload(file: Express.Multer.File): Promise<ValidatedUpload> {
   const extension = file.originalname.split(".").pop()?.toLowerCase() ?? "";
 
-  if (extension === "pdf") return validateCaseAttachment(file);
+  if (extension === "pdf") {
+    return rejected("PDF é documento comprobatório e deve ser anexado diretamente ao caso");
+  }
 
   if (extension === "zip") {
     const names = await zipEntryNames(file.buffer);
@@ -106,10 +104,7 @@ export async function validateDatasetUpload(
 
   if (extension === "kml") {
     const text = safeText(file.buffer).trimStart();
-    if (
-      (text.startsWith("<?xml") || /^<kml(?:\s|>)/i.test(text)) &&
-      /<kml(?:\s|>)/i.test(text)
-    ) {
+    if ((text.startsWith("<?xml") || /^<kml(?:\s|>)/i.test(text)) && /<kml(?:\s|>)/i.test(text)) {
       return { contentType: "application/vnd.google-earth.kml+xml", extension };
     }
     return rejected("O arquivo não contém KML válido");
@@ -123,7 +118,5 @@ export async function validateDatasetUpload(
     return rejected("O arquivo não contém CSV válido com cabeçalho separado por vírgulas");
   }
 
-  return rejected(
-    `Extensão .${extension} não suportada. Use .zip, .geojson, .kml, .kmz, .csv ou .pdf`,
-  );
+  return rejected(`Extensão .${extension} não suportada. Use .zip, .geojson, .kml, .kmz ou .csv`);
 }
