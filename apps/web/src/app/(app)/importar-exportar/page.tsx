@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   ArrowDownToLine,
@@ -21,6 +22,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileField, TextField } from "@/components/ui/form-fields";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { SelectField } from "@/components/ui/select-field";
 import {
   Sheet,
   SheetBody,
@@ -34,11 +38,13 @@ import {
   useDeleteDataset,
   useUploadDataset,
   useDownloadDataset,
+  useReviewDatasetPublication,
 } from "@/lib/queries/datasets";
-import { userHasPermission } from "@geo/shared";
+import { CASE_DECLARATION_TEXT, CASE_DECLARATION_VERSION, userHasPermission } from "@geo/shared";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useCase, useSubmitCase, useUpdateCase, useUploadCaseDocument } from "@/lib/queries/cases";
 
 const FORMATS = [
   { id: "shapefile", name: "Shapefile", ext: ".zip", icon: Database, accept: ".zip" },
@@ -46,7 +52,6 @@ const FORMATS = [
   { id: "kml", name: "KML", ext: ".kml", icon: Globe, accept: ".kml" },
   { id: "kmz", name: "KMZ", ext: ".kmz", icon: Globe, accept: ".kmz" },
   { id: "csv", name: "CSV", ext: ".csv", icon: FileSpreadsheet, accept: ".csv" },
-  { id: "pdf", name: "PDF", ext: ".pdf", icon: FileText, accept: ".pdf" },
 ];
 
 const STATUS_ICON: Record<string, React.ElementType> = {
@@ -67,15 +72,43 @@ const STATUS_TONE: Record<string, { icon: string; chip: string }> = {
   error: { icon: "text-red-500", chip: "bg-red-500/10" },
 };
 
-export default function ImportarExportarPage() {
+function ImportarExportarContent() {
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get("caseId");
+  const { data: linkedCase, isLoading: linkedCaseLoading } = useCase(caseId);
+  const submitCase = useSubmitCase();
+  const updateCase = useUpdateCase();
   const { data: datasets, isLoading } = useDatasets();
   const deleteDataset = useDeleteDataset();
   const downloadDataset = useDownloadDataset();
+  const reviewDataset = useReviewDatasetPublication();
   const user = useAuthStore((s) => s.user);
   const canExport = userHasPermission(user, "data:export");
   const canDelete = userHasPermission(user, "dataset:delete");
+  const canReview = userHasPermission(user, "case:validate");
   const [preselectFormat, setPreselectFormat] = useState<(typeof FORMATS)[number] | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [finalDeclarationAccepted, setFinalDeclarationAccepted] = useState(false);
+
+  useEffect(() => {
+    setFinalDeclarationAccepted(false);
+  }, [linkedCase?.revision]);
+
+  async function acceptAndSubmitCase() {
+    if (!caseId || !linkedCase || !finalDeclarationAccepted) {
+      toast.error("Revise e aceite a declaração antes de submeter");
+      return;
+    }
+    await updateCase.mutateAsync({
+      id: caseId,
+      data: {
+        revision: linkedCase.revision,
+        declarationAccepted: true,
+        declarationVersion: CASE_DECLARATION_VERSION,
+      },
+    });
+    await submitCase.mutateAsync(caseId);
+  }
 
   const total = datasets?.length ?? 0;
   const concluidos = datasets?.filter((d) => d.status === "active").length ?? 0;
@@ -141,7 +174,11 @@ export default function ImportarExportarPage() {
                   render={
                     <button
                       type="button"
-                      className="flex flex-col items-center gap-2 border border-border p-4 text-center transition-colors hover:border-primary hover:bg-accent/40"
+                      disabled={
+                        Boolean(caseId) &&
+                        (linkedCaseLoading || linkedCase?.createdById !== user?.id)
+                      }
+                      className="flex flex-col items-center gap-2 border border-border p-4 text-center transition-colors hover:border-primary hover:bg-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <format.icon className="h-5 w-5 text-muted-foreground" />
                       <div>
@@ -156,7 +193,13 @@ export default function ImportarExportarPage() {
                     <SheetTitle>Importar {format.name}</SheetTitle>
                   </SheetHeader>
                   <SheetBody>
-                    <UploadForm format={format} onDone={() => setUploadOpen(false)} />
+                    <UploadForm
+                      format={format}
+                      caseId={
+                        linkedCase?.createdById === user?.id ? (caseId ?? undefined) : undefined
+                      }
+                      onDone={() => setUploadOpen(false)}
+                    />
                   </SheetBody>
                 </SheetContent>
               </Sheet>
@@ -164,6 +207,59 @@ export default function ImportarExportarPage() {
           </div>
         </CardContent>
       </Card>
+
+      {caseId && linkedCase && linkedCase.createdById === user?.id && (
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <div>
+              <p className="text-sm font-semibold">Complementar o caso: {linkedCase.nome}</p>
+              <p className="text-xs text-muted-foreground">
+                Envie os documentos comprobatórios e, ao concluir, submeta o rascunho para
+                verificação.
+              </p>
+            </div>
+            <CaseDocumentUpload caseId={caseId} sources={linkedCase.sources} />
+            <label className="flex items-start gap-2 border-t border-border pt-4 text-sm">
+              <Checkbox
+                checked={finalDeclarationAccepted}
+                onCheckedChange={(checked) => setFinalDeclarationAccepted(checked === true)}
+              />
+              <span>
+                {CASE_DECLARATION_TEXT}{" "}
+                <span className="text-xs text-muted-foreground">
+                  (versão {CASE_DECLARATION_VERSION}; aceite referente aos documentos e dados
+                  atualmente vinculados)
+                </span>
+              </span>
+            </label>
+            <div className="flex items-center justify-between border-t border-border pt-4">
+              <p className="text-xs text-muted-foreground">
+                {linkedCase.documents.length} documento(s) e {linkedCase.datasets.length} dataset(s)
+                vinculados.
+              </p>
+              <Button
+                type="button"
+                disabled={
+                  linkedCase.status !== "rascunho" ||
+                  !finalDeclarationAccepted ||
+                  submitCase.isPending ||
+                  updateCase.isPending
+                }
+                onClick={() =>
+                  toast.promise(acceptAndSubmitCase(), {
+                    loading: "Submetendo caso...",
+                    success: "Caso submetido para verificação",
+                    error: (error) =>
+                      error instanceof Error ? error.message : "Falha ao submeter o caso",
+                  })
+                }
+              >
+                {linkedCase.status === "rascunho" ? "Submeter para verificação" : "Caso submetido"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* exportar */}
       {canExport && (
@@ -261,6 +357,9 @@ export default function ImportarExportarPage() {
                     <p className="truncate text-sm font-medium">{d.nome}</p>
                     <p className="text-xs text-muted-foreground">
                       Importação · {d.formato}
+                      {` · ${d.visibility === "publico" ? "Público" : d.requestedPublic ? "Publicação solicitada" : "Restrito"}`}
+                      {d.codigoCar ? ` · CAR ${d.codigoCar}` : ""}
+                      {d.codigoSigef ? ` · SIGEF ${d.codigoSigef}` : ""}
                       {d.erro && <span className="text-destructive"> · {d.erro}</span>}
                     </p>
                   </div>
@@ -287,6 +386,18 @@ export default function ImportarExportarPage() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
+                  {canReview && d.requestedPublic && d.status === "active" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={reviewDataset.isPending}
+                      onClick={() =>
+                        reviewDataset.mutate({ id: d.id, approved: d.visibility !== "publico" })
+                      }
+                    >
+                      {d.visibility === "publico" ? "Revogar publicação" : "Aprovar publicação"}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -294,6 +405,20 @@ export default function ImportarExportarPage() {
         })}
       </div>
     </div>
+  );
+}
+
+export default function ImportarExportarPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6">
+          <Skeleton className="h-40 w-full" />
+        </div>
+      }
+    >
+      <ImportarExportarContent />
+    </Suspense>
   );
 }
 
@@ -334,7 +459,6 @@ function StatCard({
 const FORMAT_HINT: Record<string, string> = {
   shapefile: "Envie um .zip contendo .shp/.dbf/.shx",
   csv: "O CSV precisa de colunas de latitude/longitude",
-  pdf: "PDF fica guardado como documento, sem geometria no mapa",
 };
 
 interface UploadFormErrors {
@@ -355,10 +479,21 @@ function validateUploadForm(nome: string, file: File | null): UploadFormErrors {
   return errors;
 }
 
-function UploadForm({ format, onDone }: { format: (typeof FORMATS)[number]; onDone: () => void }) {
+function UploadForm({
+  format,
+  caseId,
+  onDone,
+}: {
+  format: (typeof FORMATS)[number];
+  caseId?: string;
+  onDone: () => void;
+}) {
   const [nome, setNome] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<UploadFormErrors>({});
+  const [visibility, setVisibility] = useState<"publico" | "restrito">("restrito");
+  const [codigoCar, setCodigoCar] = useState("");
+  const [codigoSigef, setCodigoSigef] = useState("");
   const upload = useUploadDataset();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -370,7 +505,14 @@ function UploadForm({ format, onDone }: { format: (typeof FORMATS)[number]; onDo
       return;
     }
     try {
-      await upload.mutateAsync({ nome, file: file! });
+      await upload.mutateAsync({
+        nome,
+        file: file!,
+        caseId,
+        visibility,
+        codigoCar: codigoCar || undefined,
+        codigoSigef: codigoSigef || undefined,
+      });
       toast.success("Importação iniciada. Acompanhe o status no histórico abaixo.");
       setNome("");
       setFile(null);
@@ -409,9 +551,118 @@ function UploadForm({ format, onDone }: { format: (typeof FORMATS)[number]; onDo
         hint={FORMAT_HINT[format.id]}
         required
       />
+      <SelectField
+        id="ie-visibility"
+        value={visibility}
+        onValueChange={setVisibility}
+        options={[
+          { value: "restrito", label: "Restrito" },
+          { value: "publico", label: "Solicitar publicação após revisão" },
+        ]}
+      />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <TextField
+          id="ie-car"
+          label="Código CAR (opcional)"
+          value={codigoCar}
+          onChange={(event) => setCodigoCar(event.target.value)}
+        />
+        <TextField
+          id="ie-sigef"
+          label="Código SIGEF (opcional)"
+          value={codigoSigef}
+          onChange={(event) => setCodigoSigef(event.target.value)}
+        />
+      </div>
       <Button type="submit" className="w-full gap-2" disabled={upload.isPending}>
         <Upload className="h-4 w-4" />
         {upload.isPending ? "Enviando..." : "Importar"}
+      </Button>
+    </form>
+  );
+}
+
+function CaseDocumentUpload({
+  caseId,
+  sources,
+}: {
+  caseId: string;
+  sources: { id?: string; titulo: string }[];
+}) {
+  const upload = useUploadCaseDocument();
+  const [file, setFile] = useState<File | null>(null);
+  const [visibility, setVisibility] = useState<"publico" | "restrito">("restrito");
+  const [possuiDadosPessoais, setPossuiDadosPessoais] = useState(false);
+  const [sourceId, setSourceId] = useState("");
+
+  async function handleUpload(event: React.FormEvent) {
+    event.preventDefault();
+    if (!file) return toast.error("Selecione um PDF ou KMZ");
+    try {
+      await upload.mutateAsync({
+        id: caseId,
+        file,
+        visibility,
+        possuiDadosPessoais,
+        sourceId: sourceId || undefined,
+      });
+      setFile(null);
+      toast.success("Documento enviado para armazenamento privado");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Falha ao enviar documento");
+    }
+  }
+
+  return (
+    <form onSubmit={handleUpload} className="grid gap-3 md:grid-cols-2 md:items-end">
+      <div className="space-y-2">
+        <Label htmlFor="case-document">Documento (PDF ou KMZ)</Label>
+        <input
+          id="case-document"
+          type="file"
+          accept=".pdf,.kmz"
+          className="block w-full text-sm"
+          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+        />
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Checkbox
+            checked={possuiDadosPessoais}
+            onCheckedChange={(checked) => {
+              const enabled = checked === true;
+              setPossuiDadosPessoais(enabled);
+              if (enabled) setVisibility("restrito");
+            }}
+          />
+          Contém dados pessoais ou informação restrita
+        </label>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="case-document-visibility">Visibilidade</Label>
+        <SelectField
+          id="case-document-visibility"
+          value={visibility}
+          disabled={possuiDadosPessoais}
+          onValueChange={setVisibility}
+          options={[
+            { value: "restrito", label: "Restrito" },
+            { value: "publico", label: "Público após validar" },
+          ]}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="case-document-source">Fonte relacionada</Label>
+        <SelectField
+          id="case-document-source"
+          value={sourceId || undefined}
+          onValueChange={setSourceId}
+          placeholder="Sem vínculo específico"
+          options={sources
+            .filter((source) => source.id)
+            .map((source) => ({ value: source.id!, label: source.titulo }))}
+        />
+      </div>
+      <Button type="submit" className="md:col-span-2" disabled={!file || upload.isPending}>
+        Enviar documento
       </Button>
     </form>
   );

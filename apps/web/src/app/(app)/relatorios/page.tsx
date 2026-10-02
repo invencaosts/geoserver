@@ -18,6 +18,7 @@ import {
 } from "@/lib/queries/reports";
 
 const STATUS_LABEL: Record<CaseStatus, string> = {
+  rascunho: "Rascunho",
   pendente: "Pendente",
   em_verificacao: "Em verificação",
   validado: "Validado",

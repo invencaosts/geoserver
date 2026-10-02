@@ -10,6 +10,7 @@ import { LayersPanel } from "@/components/map/layers-panel";
 import { useCaseMapPoints } from "@/lib/queries/cases";
 import { useDatasets } from "@/lib/queries/datasets";
 import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 
 const PRIORIDADE_COLOR: Record<string, string> = {
   critica: "#ef4444",
@@ -139,16 +140,45 @@ export default function MapaPage() {
 
   // plota features dos datasets ativos
   useEffect(() => {
-    if (!map || !datasets) return;
+    if (!map) return;
 
-    const active = datasets.filter((d) => d.status === "active");
+    // Uma sessão expirada ou uma listagem que falhou não pode conservar no mapa
+    // camadas restritas carregadas por uma autorização anterior.
+    const active = datasets?.filter((d) => d.status === "active") ?? [];
+    const authorizedSourceIds = new Set(active.map((dataset) => `dataset-${dataset.id}`));
+    for (const sourceId of Object.keys(map.getStyle()?.sources ?? {})) {
+      if (!sourceId.startsWith("dataset-") || authorizedSourceIds.has(sourceId)) continue;
+      const layerId = `${sourceId}-layer`;
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
+    }
+    let cancelled = false;
 
     active.forEach(async (dataset) => {
       const sourceId = `dataset-${dataset.id}`;
       if (map.getSource(sourceId)) return;
-      const geojson = await apiFetch(`/datasets/${dataset.id}/export`);
+      let geojson: {
+        type: "FeatureCollection";
+        features: unknown[];
+        truncated?: boolean;
+        limit?: number;
+      };
+      try {
+        geojson = await apiFetch(`/datasets/${dataset.id}/map-features`);
+      } catch {
+        // A autorização pode mudar enquanto as camadas são carregadas. A próxima
+        // atualização da listagem remove a camada sem deixar rejeição assíncrona solta.
+        return;
+      }
+      if (cancelled) return;
+      if (geojson.truncated) {
+        toast.warning(
+          `A camada ${dataset.nome} foi limitada a ${geojson.limit?.toLocaleString("pt-BR") ?? "1.000"} feições no mapa.`,
+        );
+      }
 
       const addLayer = () => {
+        if (cancelled) return;
         if (map.getSource(sourceId)) return;
         map.addSource(sourceId, { type: "geojson", data: geojson as any });
         map.addLayer({
@@ -177,6 +207,9 @@ export default function MapaPage() {
       if (map.isStyleLoaded()) addLayer();
       else map.once("load", addLayer);
     });
+    return () => {
+      cancelled = true;
+    };
   }, [map, datasets]);
 
   return (

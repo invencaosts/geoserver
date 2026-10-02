@@ -1,34 +1,43 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AuthUser, UserDTO } from "@geo/shared";
+import type {
+  AuthUser,
+  ResearcherProfileDTO,
+  UserDTO,
+  UserOnboardingProfileDTO,
+} from "@geo/shared";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 
 export function useMyProfile() {
+  const userId = useAuthStore((state) => state.user?.id ?? "anonymous");
   return useQuery({
-    queryKey: ["users", "me"],
+    queryKey: ["users", userId, "me"],
     queryFn: () => apiFetch<UserDTO>("/users/me"),
   });
 }
 
 export interface UpdateProfilePayload {
-  nomeSocial?: string;
-  telefone?: string;
-  instituicao?: string;
-  endereco?: string;
-  localidade?: string;
-  quemRepresenta?: string;
+  nomeSocial?: string | null;
+  telefone?: string | null;
+  instituicao?: string | null;
+  endereco?: string | null;
+  localidade?: string | null;
+  quemRepresenta?: string | null;
   idiomas?: string[];
   areasInteresse?: UserDTO["areasInteresse"];
+  onboardingProfile?: UserOnboardingProfileDTO;
+  researcherProfile?: ResearcherProfileDTO;
 }
 
 export function useUpdateProfile() {
   const qc = useQueryClient();
+  const userId = useAuthStore((state) => state.user?.id ?? "anonymous");
   return useMutation({
     mutationFn: (data: UpdateProfilePayload) =>
       apiFetch<UserDTO>("/users/me", { method: "PATCH", body: data }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users", "me"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users", userId, "me"] }),
   });
 }
 

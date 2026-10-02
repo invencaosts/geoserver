@@ -88,7 +88,16 @@ export default function UsuariosPage() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                    <p
+                      className={cn(
+                        "mt-0.5 text-[10px]",
+                        u.researcherProfileComplete ? "text-emerald-600" : "text-amber-600",
+                      )}
+                    >
+                      {u.researcherProfileComplete
+                        ? "Perfil profissional completo"
+                        : "Perfil profissional pendente"}
+                    </p>
                   </div>
                 </div>
 

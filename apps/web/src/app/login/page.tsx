@@ -7,8 +7,11 @@ import { AlertTriangle, Database, MapPinned, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { SelectField } from "@/components/ui/select-field";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLogin, useRegister } from "@/lib/queries/auth";
+import { BRAZIL_UFS } from "@/lib/brazil-ufs";
 import { toast } from "sonner";
 
 function formatCpf(value: string) {
@@ -29,7 +32,7 @@ const HIGHLIGHTS = [
   {
     icon: Database,
     title: "Dados que chegam prontos",
-    desc: "Shapefile, GeoJSON, KML, KMZ, CSV e PDF processados automaticamente",
+    desc: "Shapefile, GeoJSON, KML, KMZ e CSV processados automaticamente",
   },
   {
     icon: ShieldCheck,
@@ -46,6 +49,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [estado, setEstado] = useState("");
+  const [escolaridade, setEscolaridade] = useState("");
+  const [perfilUsuario, setPerfilUsuario] = useState("");
+  const [perfilUsuarioOutro, setPerfilUsuarioOutro] = useState("");
+  const [possuiVinculo, setPossuiVinculo] = useState(false);
+  const [instituicaoNome, setInstituicaoNome] = useState("");
+  const [instituicaoCnpj, setInstituicaoCnpj] = useState("");
+  const [instituicaoEmail, setInstituicaoEmail] = useState("");
+  const [tipoVinculo, setTipoVinculo] = useState("");
+  const [tipoVinculoOutro, setTipoVinculoOutro] = useState("");
+  const [comoConheceu, setComoConheceu] = useState("");
+  const [comoConheceuOutro, setComoConheceuOutro] = useState("");
+  const [finalidadeAcesso, setFinalidadeAcesso] = useState("");
+  const [finalidadeAcessoOutro, setFinalidadeAcessoOutro] = useState("");
 
   const login = useLogin();
   const register = useRegister();
@@ -57,12 +75,47 @@ export default function LoginPage() {
       if (mode === "login") {
         await login.mutateAsync({ email, senha });
       } else {
+        if (
+          !municipio.trim() ||
+          !BRAZIL_UFS.some((uf) => uf.sigla === estado) ||
+          !escolaridade ||
+          !perfilUsuario ||
+          !comoConheceu ||
+          !finalidadeAcesso ||
+          (perfilUsuario === "outro" && !perfilUsuarioOutro.trim()) ||
+          (comoConheceu === "outro" && !comoConheceuOutro.trim()) ||
+          (finalidadeAcesso === "outro" && !finalidadeAcessoOutro.trim()) ||
+          (possuiVinculo &&
+            (!instituicaoNome.trim() ||
+              !instituicaoCnpj.trim() ||
+              !instituicaoEmail.trim() ||
+              !tipoVinculo ||
+              (tipoVinculo === "outro" && !tipoVinculoOutro.trim())))
+        ) {
+          toast.error("Preencha todos os campos obrigatórios do cadastro");
+          return;
+        }
         await register.mutateAsync({
           nome,
           nomeSocial: nomeSocial || undefined,
           email,
           cpf,
           senha,
+          municipio,
+          estado,
+          escolaridade,
+          perfilUsuario,
+          perfilUsuarioOutro: perfilUsuarioOutro || undefined,
+          possuiVinculo,
+          instituicaoNome: instituicaoNome || undefined,
+          instituicaoCnpj: instituicaoCnpj || undefined,
+          instituicaoEmail: instituicaoEmail || undefined,
+          tipoVinculo: tipoVinculo || undefined,
+          tipoVinculoOutro: tipoVinculoOutro || undefined,
+          comoConheceu,
+          comoConheceuOutro: comoConheceuOutro || undefined,
+          finalidadeAcesso,
+          finalidadeAcessoOutro: finalidadeAcessoOutro || undefined,
         });
       }
       router.push("/mapa");
@@ -130,7 +183,11 @@ export default function LoginPage() {
 
       {/* painel do formulário */}
       <div className="flex items-center justify-center bg-background p-6">
-        <div className="w-full max-w-sm space-y-6">
+        <div
+          className={
+            mode === "register" ? "w-full max-w-2xl space-y-6" : "w-full max-w-sm space-y-6"
+          }
+        >
           <div className="space-y-1.5 lg:hidden">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-[10px] bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
               <MapPinned className="h-5 w-5" />
@@ -166,6 +223,232 @@ export default function LoginPage() {
                     onChange={(e) => setNome(e.target.value)}
                     required
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="municipio">Município</Label>
+                    <Input
+                      id="municipio"
+                      value={municipio}
+                      onChange={(e) => setMunicipio(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estado">Estado (UF)</Label>
+                    <SelectField
+                      id="estado"
+                      value={estado || undefined}
+                      onValueChange={setEstado}
+                      placeholder="Selecione"
+                      options={BRAZIL_UFS.map((uf) => ({
+                        value: uf.sigla,
+                        label: `${uf.sigla} — ${uf.nome}`,
+                      }))}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="escolaridade">Grau de escolaridade</Label>
+                    <SelectField
+                      id="escolaridade"
+                      value={escolaridade || undefined}
+                      onValueChange={setEscolaridade}
+                      placeholder="Selecione"
+                      options={[
+                        { value: "fundamental_incompleto", label: "Ensino fundamental incompleto" },
+                        { value: "fundamental_completo", label: "Ensino fundamental completo" },
+                        { value: "medio_incompleto", label: "Ensino médio incompleto" },
+                        { value: "medio_completo", label: "Ensino médio completo" },
+                        { value: "tecnico", label: "Ensino técnico" },
+                        { value: "graduacao_incompleta", label: "Graduação incompleta" },
+                        { value: "graduacao_completa", label: "Graduação completa" },
+                        { value: "especializacao", label: "Especialização" },
+                        { value: "mestrado", label: "Mestrado" },
+                        { value: "doutorado", label: "Doutorado" },
+                        { value: "pos_doutorado", label: "Pós-doutorado" },
+                        { value: "prefiro_nao_informar", label: "Prefiro não informar" },
+                      ]}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="perfilUsuario">Perfil de usuário</Label>
+                    <SelectField
+                      id="perfilUsuario"
+                      value={perfilUsuario || undefined}
+                      onValueChange={setPerfilUsuario}
+                      placeholder="Selecione"
+                      options={[
+                        { value: "estudante", label: "Estudante" },
+                        { value: "professor", label: "Professor" },
+                        { value: "pesquisador", label: "Pesquisador" },
+                        { value: "setor_publico", label: "Profissional do Setor Público" },
+                        { value: "setor_privado", label: "Profissional do Setor Privado" },
+                        { value: "autonomo", label: "Profissional Autônomo" },
+                        { value: "trabalhador_rural", label: "Trabalhador Rural" },
+                        {
+                          value: "organizacao_social",
+                          label: "Representante de organização social",
+                        },
+                        {
+                          value: "comunidade_tradicional",
+                          label: "Representante de comunidade tradicional",
+                        },
+                        { value: "imprensa", label: "Imprensa/comunicação" },
+                        { value: "outro", label: "Outro" },
+                        { value: "prefiro_nao_informar", label: "Prefiro não informar" },
+                      ]}
+                    />
+                    {perfilUsuario === "outro" && (
+                      <Input
+                        value={perfilUsuarioOutro}
+                        onChange={(e) => setPerfilUsuarioOutro(e.target.value)}
+                        placeholder="Especifique o perfil"
+                        required
+                      />
+                    )}
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={possuiVinculo}
+                    onCheckedChange={(checked) => setPossuiVinculo(checked === true)}
+                  />
+                  Possuo vínculo com uma instituição
+                </label>
+                {possuiVinculo && (
+                  <div className="grid grid-cols-2 gap-3 rounded-md border border-border p-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="instituicaoNome">Instituição</Label>
+                      <Input
+                        id="instituicaoNome"
+                        value={instituicaoNome}
+                        onChange={(e) => setInstituicaoNome(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="instituicaoCnpj">CNPJ</Label>
+                      <Input
+                        id="instituicaoCnpj"
+                        value={instituicaoCnpj}
+                        onChange={(e) => setInstituicaoCnpj(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="instituicaoEmail">E-mail institucional</Label>
+                      <Input
+                        id="instituicaoEmail"
+                        type="email"
+                        value={instituicaoEmail}
+                        onChange={(e) => setInstituicaoEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tipoVinculo">Tipo de vínculo</Label>
+                      <SelectField
+                        id="tipoVinculo"
+                        value={tipoVinculo || undefined}
+                        onValueChange={setTipoVinculo}
+                        placeholder="Selecione"
+                        options={[
+                          { value: "universidade", label: "Universidade/instituição de ensino" },
+                          { value: "instituto_pesquisa", label: "Instituto de pesquisa" },
+                          { value: "escola", label: "Escola" },
+                          { value: "orgao_publico", label: "Órgão público" },
+                          { value: "empresa_privada", label: "Empresa privada" },
+                          { value: "sociedade_civil", label: "Organização da sociedade civil" },
+                          { value: "movimento_social", label: "Movimento social" },
+                          { value: "organizacao_comunitaria", label: "Organização comunitária" },
+                          { value: "cooperativa_associacao", label: "Cooperativa/associação" },
+                          { value: "sindicato", label: "Sindicato" },
+                          {
+                            value: "organizacao_internacional",
+                            label: "Organização internacional",
+                          },
+                          { value: "outro", label: "Outro" },
+                        ]}
+                      />
+                      {tipoVinculo === "outro" && (
+                        <Input
+                          value={tipoVinculoOutro}
+                          onChange={(e) => setTipoVinculoOutro(e.target.value)}
+                          placeholder="Especifique o vínculo"
+                          required
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="comoConheceu">Como conheceu a plataforma?</Label>
+                    <SelectField
+                      id="comoConheceu"
+                      value={comoConheceu || undefined}
+                      onValueChange={setComoConheceu}
+                      placeholder="Selecione"
+                      options={[
+                        { value: "universidade", label: "Universidade/instituição de ensino" },
+                        { value: "pesquisa_academica", label: "Pesquisa acadêmica" },
+                        { value: "redes_sociais", label: "Redes sociais" },
+                        { value: "internet", label: "Site/internet" },
+                        { value: "indicacao", label: "Indicação de outra pessoa" },
+                        { value: "organizacao_social", label: "Organização/movimento social" },
+                        { value: "orgao_publico", label: "Órgão público" },
+                        { value: "evento", label: "Evento/palestra" },
+                        { value: "imprensa", label: "Imprensa" },
+                        { value: "outro", label: "Outro" },
+                      ]}
+                    />
+                    {comoConheceu === "outro" && (
+                      <Input
+                        value={comoConheceuOutro}
+                        onChange={(e) => setComoConheceuOutro(e.target.value)}
+                        placeholder="Descreva como conheceu"
+                        required
+                      />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="finalidadeAcesso">Principal finalidade de acesso</Label>
+                    <SelectField
+                      id="finalidadeAcesso"
+                      value={finalidadeAcesso || undefined}
+                      onValueChange={setFinalidadeAcesso}
+                      placeholder="Selecione"
+                      options={[
+                        {
+                          value: "conhecer_informacoes",
+                          label: "Conhecer as informações disponíveis",
+                        },
+                        { value: "pesquisa_academica", label: "Pesquisa acadêmica" },
+                        { value: "estudos_escolares", label: "Estudos escolares" },
+                        { value: "pesquisa_profissional", label: "Pesquisa profissional" },
+                        { value: "pesquisa_jornalistica", label: "Pesquisa jornalística" },
+                        { value: "consulta_trabalho", label: "Consulta para trabalho" },
+                        {
+                          value: "questoes_territoriais",
+                          label: "Interesse em questões territoriais",
+                        },
+                        { value: "questoes_fundiarias", label: "Interesse em questões fundiárias" },
+                        { value: "questoes_ambientais", label: "Interesse em questões ambientais" },
+                        { value: "interesse_pessoal", label: "Interesse pessoal" },
+                        { value: "outro", label: "Outro" },
+                      ]}
+                    />
+                    {finalidadeAcesso === "outro" && (
+                      <Input
+                        value={finalidadeAcessoOutro}
+                        onChange={(e) => setFinalidadeAcessoOutro(e.target.value)}
+                        placeholder="Descreva a finalidade"
+                        required
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nomeSocial">Nome social (opcional)</Label>

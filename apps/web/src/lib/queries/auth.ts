@@ -16,6 +16,21 @@ export interface RegisterPayload {
   email: string;
   cpf: string;
   senha: string;
+  municipio: string;
+  estado: string;
+  escolaridade: string;
+  perfilUsuario: string;
+  perfilUsuarioOutro?: string;
+  possuiVinculo: boolean;
+  instituicaoCnpj?: string;
+  instituicaoNome?: string;
+  instituicaoEmail?: string;
+  tipoVinculo?: string;
+  tipoVinculoOutro?: string;
+  comoConheceu: string;
+  comoConheceuOutro?: string;
+  finalidadeAcesso: string;
+  finalidadeAcessoOutro?: string;
 }
 
 export function useLogin() {

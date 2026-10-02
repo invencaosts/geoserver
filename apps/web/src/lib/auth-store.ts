@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AuthUser } from "@geo/shared";
+import { queryClient } from "@/lib/query-client";
 
 interface AuthState {
   user: AuthUser | null;
@@ -17,9 +18,15 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-      setSession: (user, token) => set({ user, token }),
+      setSession: (user, token) => {
+        queryClient.clear();
+        set({ user, token });
+      },
       updateUser: (patch) => set((s) => (s.user ? { user: { ...s.user, ...patch } } : s)),
-      clear: () => set({ user: null, token: null }),
+      clear: () => {
+        queryClient.clear();
+        set({ user: null, token: null });
+      },
     }),
     { name: "geo-auth" },
   ),
