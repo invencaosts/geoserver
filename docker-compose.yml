@@ -37,6 +37,36 @@ services:
     volumes:
       - ./data/minio:/data
 
+  minio-init:
+    image: minio/minio:latest
+    depends_on:
+      - minio
+    restart: "no"
+    environment:
+      MINIO_ROOT_USER: geo_admin
+      MINIO_ROOT_PASSWORD: geo_dev_pw_123
+      MINIO_APP_USER: geo_app
+      MINIO_APP_PASSWORD: geo_app_dev_pw_123
+    volumes:
+      - ./infra/minio:/policies:ro
+    entrypoint: >-
+      /bin/sh -c '
+      set -eu;
+      until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; do sleep 1; done;
+      mc mb --ignore-existing local/geo-datasets local/avatars local/attachments local/case-evidence local/timeline-leis;
+      mc admin user add local "$${MINIO_APP_USER}" "$${MINIO_APP_PASSWORD}" || mc admin user info local "$${MINIO_APP_USER}";
+      mc admin policy create local geo-app /policies/app-policy.json;
+      mc admin policy attach local geo-app --user "$${MINIO_APP_USER}";
+      mc anonymous set download local/avatars;
+      mc anonymous set download local/timeline-leis;
+      mc anonymous set none local/attachments;
+      mc anonymous set-json /policies/attachments-public-policy.json local/attachments;
+      mc anonymous set none local/case-evidence;
+      mc anonymous set none local/geo-datasets;
+      mc anonymous get-json local/attachments > /tmp/attachments-policy.json;
+      sha256sum -c /policies/attachments-public-policy.sha256;
+      '
+
   martin:
     image: ghcr.io/maplibre/martin:latest
     restart: unless-stopped

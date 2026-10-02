@@ -76,27 +76,13 @@ async function setupMinio() {
     endPoint,
     port,
     useSSL: false,
-    accessKey: process.env.MINIO_ACCESS_KEY ?? "geo_admin",
-    secretKey: process.env.MINIO_SECRET_KEY ?? "geo_dev_pw_123",
+    accessKey: process.env.MINIO_ACCESS_KEY ?? "geo_app",
+    secretKey: process.env.MINIO_SECRET_KEY ?? "geo_app_dev_pw_123",
   });
   const publicUrl = process.env.MINIO_PUBLIC_URL ?? `http://${endPoint}:${port}`;
 
   const exists = await client.bucketExists(TIMELINE_BUCKET).catch(() => false);
   if (!exists) await client.makeBucket(TIMELINE_BUCKET);
-  await client.setBucketPolicy(
-    TIMELINE_BUCKET,
-    JSON.stringify({
-      Version: "2012-10-17",
-      Statement: [
-        {
-          Effect: "Allow",
-          Principal: { AWS: ["*"] },
-          Action: ["s3:GetObject"],
-          Resource: [`arn:aws:s3:::${TIMELINE_BUCKET}/*`],
-        },
-      ],
-    }),
-  );
 
   return { client, publicUrl };
 }

@@ -53,7 +53,7 @@ docker-compose.yml      # postgres+postgis, redis, minio, martin (dev)
 
 ## Domínio implementado
 
-- **Auth & RBAC**: 5 papéis, do maior ao menor acesso — `admin`, `verificador`, `pesquisador_envio_download` (envia casos/datasets e baixa dados e relatórios), `pesquisador_envio` (só envia) e `visualizador` (só visualiza). O site é aberto sem login: o visitante anônimo tem as permissões do `visualizador`, e toda conta nova também entra como `visualizador`. Admin e verificador definem quem é pesquisador (o verificador só alterna entre `visualizador` e os dois níveis de pesquisador; ativar/desativar contas e dar papéis de admin/verificador é só do admin). Permissões granulares (`dataset:write`, `data:export`, `case:validate`, `user:assign_researcher` etc) checadas no backend, não só na UI. O primeiro usuário cadastrado no sistema vira `admin` automaticamente.
+- **Auth & RBAC**: 5 papéis, do maior ao menor acesso — `admin`, `verificador`, `pesquisador_envio_download` (envia casos/datasets e baixa dados e relatórios), `pesquisador_envio` (só envia) e `visualizador` (só visualiza). O site é aberto sem login: o visitante anônimo tem as permissões do `visualizador`, e toda conta nova também entra como `visualizador`. Admin e verificador definem quem é pesquisador (o verificador só alterna entre `visualizador` e os dois níveis de pesquisador; ativar/desativar contas e dar papéis de admin/verificador é só do admin). Permissões granulares (`dataset:write`, `data:export`, `case:validate`, `user:assign_researcher` etc) checadas no backend, não só na UI. O administrador inicial é criado uma única vez por `POST /api/auth/bootstrap-admin`, enviando no header `x-bootstrap-secret` o segredo aleatório de pelo menos 32 caracteres configurado em `ADMIN_BOOTSTRAP_SECRET`; o cadastro público nunca concede privilégios.
 - **Camadas**: registro de camadas (WMS/WFS/WCS/Vector/Raster), categoria (base/overlay/analysis), opacidade e visibilidade persistidas.
 - **Dados Espaciais**: upload de arquivo → grava original no MinIO → enfileira job no BullMQ → worker faz parse (shapefile via zip, GeoJSON, KML, CSV com lat/lng) → grava features no PostGIS (`ST_GeomFromGeoJSON`) → dataset fica `active`/`error` conforme resultado. Export em GeoJSON.
 - **Casos de Grilagem**: criação de relato, workflow de status com transições restritas (`pendente → em_verificacao → validado/rejeitado`), histórico de auditoria (`case_status_history`), dashboard com KPIs e municípios mais afetados agregados no banco.
@@ -62,6 +62,28 @@ docker-compose.yml      # postgres+postgis, redis, minio, martin (dev)
 - **Linha do Tempo** (`/timeline`): marcos legais da propriedade da terra e questão ambiental no Brasil, renderizados com TimelineJS3 (self-hosted). Filtro por escopo (nacional/estadual) e por estado (lista as 27 UFs, desabilitando as que ainda não têm evento cadastrado, com busca). PDFs anexados aos eventos abrem num viewer próprio (pdf.js), sem o visualizador nativo do browser. Tela de gestão (`/timeline/gerenciar`, permissão `timeline:manage` — `admin`/`verificador`) com CRUD completo (criar/editar/excluir evento, upload de PDF/imagem pro MinIO).
 
 > Instruções de instalação, variáveis de ambiente e seeds: ver [`COMO_RODAR.md`](./COMO_RODAR.md).
+
+### Segurança do MinIO em rolling deploy
+
+As credenciais da API devem usar a política `geo-app` de
+[`infra/minio/app-policy.json`](./infra/minio/app-policy.json), que permite operar objetos, mas
+não permite alterar políticas de bucket. `docker compose up` provisiona essa conta e restringe a
+leitura anônima de `attachments` a `timeline/*`. Nunca configure `MINIO_ACCESS_KEY` com a conta root.
+
+Em produção, aplique as políticas com uma identidade administrativa separada e rotacione os pods
+para a credencial restrita **antes** do rollout desta versão. Assim, uma réplica de código antigo que
+tente restaurar `attachments/*` como público recebe `AccessDenied` e não fica pronta. A conta root e
+as permissões `s3:PutBucketPolicy`, `s3:DeleteBucketPolicy` e `s3:PutBucketAcl` não devem ser entregues
+à aplicação.
+
+### Rolling deploy do formulário de casos
+
+O valor `rascunho` é novo no enum de status e não pode ser lido pelo Prisma Client da versão antiga.
+Faça o rollout em duas fases: primeiro publique a migration e a nova versão com
+`CASE_DRAFTS_ENABLED=false`; espere todos os pods antigos serem drenados; depois altere a variável
+para `true` e reinicie somente os pods novos. Em `NODE_ENV=production`, a ausência da variável também
+bloqueia escritas de rascunho com HTTP 503. Isso preserva leitura/validação segura durante a janela de
+compatibilidade sem gravar um enum desconhecido para réplicas antigas.
 
 ## O que falta / próximos passos
 
