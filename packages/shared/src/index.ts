@@ -42,10 +42,13 @@ export const PERMISSIONS = [
   "dataset:read",
   "dataset:write",
   "dataset:delete",
+  "dataset:read_restricted",
   "data:export",
   "case:read",
+  "case:read_restricted",
   "case:create",
   "case:validate",
+  "document:download_restricted",
   "user:read",
   "user:assign_researcher",
   "user:manage",
@@ -64,6 +67,9 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     ...SEND_PERMISSIONS,
     "data:export",
     "case:validate",
+    "case:read_restricted",
+    "dataset:read_restricted",
+    "document:download_restricted",
     "timeline:manage",
     "user:read",
     "user:assign_researcher",
@@ -97,6 +103,61 @@ export interface UserDTO extends AuthUser {
   areasInteresse: CaseTipo[];
   createdAt: string;
   updatedAt: string;
+  onboardingProfile?: UserOnboardingProfileDTO | null;
+  researcherProfile?: ResearcherProfileDTO | null;
+}
+
+export interface UserSummaryDTO extends Omit<AuthUser, "email"> {
+  createdAt: string;
+  updatedAt: string;
+  researcherProfileComplete: boolean;
+}
+
+export const CASE_DECLARATION_VERSION = "2026-10-01";
+export const CASE_FORM_SCHEMA_VERSION = "formulario-2026-10-v1";
+export const LEGACY_VALIDATED_CASE_SCHEMA_VERSION = "legado-validado-pre-formulario-v1";
+export const CASE_DECLARATION_TEXT =
+  "Declaro que as informações e os documentos enviados são verdadeiros segundo meu conhecimento, que possuo autorização para compartilhá-los e que indiquei corretamente eventuais restrições de divulgação e dados pessoais.";
+
+export interface UserOnboardingProfileDTO {
+  municipio?: string | null;
+  estado?: string | null;
+  escolaridade?: string | null;
+  perfilUsuario?: string | null;
+  perfilUsuarioOutro?: string | null;
+  possuiVinculo?: boolean | null;
+  instituicaoCnpj?: string | null;
+  instituicaoNome?: string | null;
+  instituicaoEmail?: string | null;
+  tipoVinculo?: string | null;
+  tipoVinculoOutro?: string | null;
+  comoConheceu?: string | null;
+  comoConheceuOutro?: string | null;
+  finalidadeAcesso?: string | null;
+  finalidadeAcessoOutro?: string | null;
+}
+
+export interface ResearcherProfileLinkDTO {
+  id?: string;
+  tipo: "lattes" | "orcid" | "institucional" | "pagina_profissional" | "outro";
+  url: string;
+}
+
+export interface ResearcherProfileDTO {
+  emailProfissional?: string | null;
+  telefoneWhatsapp?: string | null;
+  instituicaoNome?: string | null;
+  instituicaoCnpj?: string | null;
+  instituicaoEmail?: string | null;
+  tipoVinculo?: string | null;
+  cargoFuncao?: string | null;
+  estadoAtuacao?: string | null;
+  municipioAtuacao?: string | null;
+  perfilProfissional?: string | null;
+  nivelFormacao?: string | null;
+  finalidadeUso?: string | null;
+  completo?: boolean;
+  links?: ResearcherProfileLinkDTO[];
 }
 
 export type LayerType = "WMS" | "WFS" | "WCS" | "Vector" | "Raster";
@@ -131,6 +192,14 @@ export interface DatasetDTO {
   registros: number;
   projecaoOriginal?: string | null;
   erro?: string | null;
+  caseId?: string | null;
+  createdById?: string | null;
+  visibility: DataVisibility;
+  codigoCar?: string | null;
+  codigoSigef?: string | null;
+  requestedPublic: boolean;
+  publicationApprovedAt?: string | null;
+  publicationApprovedById?: string | null;
   createdAt: string;
 }
 
@@ -144,13 +213,94 @@ export const CASE_TIPO_LABEL: Record<CaseTipo, string> = {
 
 export type CasePrioridade = "baixa" | "media" | "alta" | "critica";
 
-export type CaseStatus = "pendente" | "em_verificacao" | "validado" | "rejeitado";
+export type CaseStatus = "rascunho" | "pendente" | "em_verificacao" | "validado" | "rejeitado";
+
+export type DataVisibility = "publico" | "restrito";
+
+export interface CaseContributionDTO {
+  relacaoPesquisador?: string | null;
+  participouProducao?: boolean | null;
+  participouValidacao?: boolean | null;
+  responsavelValidacao?: string | null;
+  instrumentoCentral?: string | null;
+  objetoEspolio?: string | null;
+  instituicaoPromotora?: string | null;
+  grauPublicidadeInformacoes?: string | null;
+  possuiRestricaoDivulgacao?: boolean | null;
+  restricaoDivulgacao?: string | null;
+  periodoInicio?: number | null;
+  periodoFim?: number | null;
+  situacaoCancelamento?: string | null;
+  orgaoCancelamento?: string | null;
+  retornouPatrimonioPublico?: boolean | null;
+  destinacaoPosterior?: string | null;
+  situacaoAtualImovel?: string | null;
+  conflitos?: string | null;
+  sujeitosSociais?: string | null;
+  escalaEspacial?: string | null;
+}
+
+export interface CaseSourceDTO {
+  id?: string;
+  titulo: string;
+  tipo?: string | null;
+  referencia?: string | null;
+  grauPublicidade?: string | null;
+}
+
+export interface CaseDocumentDTO {
+  id: string;
+  sourceId?: string | null;
+  nome: string;
+  mimeType: string;
+  tamanho: number;
+  visibility: DataVisibility;
+  requestedPublic: boolean;
+  publicationApprovedAt?: string | null;
+  publicationApprovedById?: string | null;
+  possuiDadosPessoais: boolean;
+  motivoRestricao?: string | null;
+  downloadUrl?: string;
+  createdAt: string;
+}
+
+export interface CaseFacetSelectionDTO {
+  optionId: string;
+  categoria?: string;
+  codigo?: string;
+  label?: string;
+  valorOutro?: string | null;
+}
+
+export interface CaseSpatialReferenceDTO {
+  id?: string;
+  tipo:
+    | "coordenadas_geograficas"
+    | "utm"
+    | "car"
+    | "sigef"
+    | "shapefile"
+    | "kml_kmz"
+    | "mapa"
+    | "outra";
+  valor: string;
+  descricao?: string | null;
+}
+
+export interface FormOptionDTO {
+  id: string;
+  categoria: string;
+  codigo: string;
+  label: string;
+  descricao?: string | null;
+  ordem: number;
+}
 
 export interface CaseDTO {
   id: string;
   nome: string;
   tipo: CaseTipo;
-  municipio: string;
+  municipio?: string;
   estado: string;
   descricao?: string | null;
   lat?: number | null;
@@ -159,6 +309,20 @@ export interface CaseDTO {
   denunciante?: string | null;
   prioridade: CasePrioridade;
   status: CaseStatus;
+  declarationAccepted?: boolean;
+  declarationVersion?: string | null;
+  declarationText?: string | null;
+  declarationHash?: string | null;
+  declarationContentHash?: string | null;
+  declarationAcceptedRevision?: number | null;
+  declarationAcceptedAt?: string | null;
+  declarationAcceptedById?: string | null;
+  /** Ausente em registros anteriores ao formulário detalhado ou gravados por um pod antigo. */
+  formSchemaVersion?: string | null;
+  /** Indica ao autor/revisor que o formulário atual precisa ser concluído antes da validação. */
+  requiresFormCompletion?: boolean;
+  submittedAt?: string | null;
+  revision: number;
   anexoUrl?: string | null;
   anexoNome?: string | null;
   createdById: string;
@@ -186,6 +350,12 @@ export interface CasePersonDTO {
 export interface CaseDetailDTO extends CaseDTO {
   createdBy: CasePersonDTO;
   statusHistory: CaseStatusHistoryDTO[];
+  contribution?: CaseContributionDTO | null;
+  sources: CaseSourceDTO[];
+  documents: CaseDocumentDTO[];
+  facets: CaseFacetSelectionDTO[];
+  spatialReferences: CaseSpatialReferenceDTO[];
+  datasets: DatasetDTO[];
 }
 
 export interface PaginatedCasesDTO {

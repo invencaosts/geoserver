@@ -39,30 +39,116 @@ model Instituicao {
 }
 
 model User {
-  id                  String              @id @default(cuid())
-  nome                String
-  nomeSocial          String?
-  email               String              @unique
-  cpf                 String?             @unique
-  senhaHash           String
-  role                RoleName            @default(visualizador)
-  localidade          String?
-  quemRepresenta      String?
-  telefone            String?
-  instituicao         String?
-  endereco            String?
-  idiomas             String[]            @default([])
-  areasInteresse      String[]            @default([])
-  status              UserStatus          @default(ativo)
-  avatarUrl           String?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  id             String     @id @default(cuid())
+  nome           String
+  nomeSocial     String?
+  email          String     @unique
+  cpf            String?    @unique
+  senhaHash      String
+  role           RoleName   @default(visualizador)
+  localidade     String?
+  quemRepresenta String?
+  telefone       String?
+  instituicao    String?
+  endereco       String?
+  idiomas        String[]   @default([])
+  areasInteresse String[]   @default([])
+  status         UserStatus @default(ativo)
+  avatarUrl      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
-  casesCreated       Case[]              @relation("CaseCreatedBy")
-  statusChanges      CaseStatusHistory[] @relation("StatusChangedBy")
-  notifications      Notification[]
+  casesCreated         Case[]                 @relation("CaseCreatedBy")
+  statusChanges        CaseStatusHistory[]    @relation("StatusChangedBy")
+  notifications        Notification[]
+  onboardingProfile    UserOnboardingProfile?
+  researcherProfile    ResearcherProfile?
+  datasetsCreated      Dataset[]              @relation("DatasetCreatedBy")
+  documentsUploaded    CaseDocument[]         @relation("CaseDocumentUploadedBy")
+  documentsApproved    CaseDocument[]         @relation("CaseDocumentApprovedBy")
+  declarationsAccepted Case[]                 @relation("CaseDeclarationAcceptedBy")
+  datasetsPublished    Dataset[]              @relation("DatasetPublishedBy")
 
   @@map("users")
+}
+
+model UserOnboardingProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  municipio             String?
+  estado                String?
+  escolaridade          String?
+  perfilUsuario         String?
+  possuiVinculo         Boolean?
+  instituicaoCnpj       String?
+  instituicaoNome       String?
+  instituicaoEmail      String?
+  tipoVinculo           String?
+  comoConheceu          String?
+  comoConheceuOutro     String?
+  finalidadeAcesso      String?
+  finalidadeAcessoOutro String?
+  perfilUsuarioOutro    String?
+  tipoVinculoOutro      String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("user_onboarding_profiles")
+}
+
+model ResearcherProfile {
+  id                 String                  @id @default(cuid())
+  userId             String                  @unique
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailProfissional  String?
+  telefoneWhatsapp   String?
+  instituicaoNome    String?
+  instituicaoCnpj    String?
+  instituicaoEmail   String?
+  tipoVinculo        String?
+  cargoFuncao        String?
+  estadoAtuacao      String?
+  municipioAtuacao   String?
+  perfilProfissional String?
+  nivelFormacao      String?
+  finalidadeUso      String?
+  completo           Boolean                 @default(false)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  links              ResearcherProfileLink[]
+
+  @@map("researcher_profiles")
+}
+
+model ResearcherProfileLink {
+  id                  String            @id @default(cuid())
+  researcherProfileId String
+  researcherProfile   ResearcherProfile @relation(fields: [researcherProfileId], references: [id], onDelete: Cascade)
+  tipo                String
+  url                 String
+  createdAt           DateTime          @default(now())
+
+  @@index([researcherProfileId])
+  @@map("researcher_profile_links")
+}
+
+model FormOption {
+  id        String   @id @default(cuid())
+  categoria String
+  codigo    String
+  label     String
+  descricao String?
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  facets CaseFacetSelection[]
+
+  @@unique([categoria, codigo])
+  @@index([categoria, ativo, ordem])
+  @@map("form_options")
 }
 
 enum NotificationTipo {
@@ -140,31 +226,50 @@ enum DatasetStatus {
   error
 }
 
+enum DataVisibility {
+  publico
+  restrito
+}
+
 model Dataset {
-  id               String          @id @default(cuid())
-  nome             String
-  formato          DatasetFormat
-  tipoGeometria    DatasetGeomType
-  status           DatasetStatus   @default(processing)
-  registros        Int             @default(0)
-  projecaoOriginal String?
-  storageKey       String?
-  erro             String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id                      String          @id @default(cuid())
+  nome                    String
+  formato                 DatasetFormat
+  tipoGeometria           DatasetGeomType
+  status                  DatasetStatus   @default(processing)
+  registros               Int             @default(0)
+  projecaoOriginal        String?
+  storageKey              String?
+  erro                    String?
+  caseId                  String?
+  case                    Case?           @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  createdById             String?
+  createdBy               User?           @relation("DatasetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  visibility              DataVisibility  @default(restrito)
+  codigoCar               String?
+  codigoSigef             String?
+  requestedPublic         Boolean         @default(false)
+  publicationApprovedAt   DateTime?
+  publicationApprovedById String?
+  publicationApprovedBy   User?           @relation("DatasetPublishedBy", fields: [publicationApprovedById], references: [id], onDelete: SetNull)
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
 
   features Feature[]
 
+  @@index([caseId])
+  @@index([createdById])
+  @@index([publicationApprovedById])
   @@map("datasets")
 }
 
 model Feature {
-  id         String                @id @default(cuid())
+  id         String                                 @id @default(cuid())
   datasetId  String
-  dataset    Dataset               @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  dataset    Dataset                                @relation(fields: [datasetId], references: [id], onDelete: Cascade)
   geom       Unsupported("geometry(Geometry,4326)")
-  properties Json                  @default("{}")
-  createdAt  DateTime              @default(now())
+  properties Json                                   @default("{}")
+  createdAt  DateTime                               @default(now())
 
   @@index([datasetId])
   @@map("features")
@@ -184,6 +289,7 @@ enum CasePrioridade {
 }
 
 enum CaseStatus {
+  rascunho
   pendente
   em_verificacao
   validado
@@ -191,22 +297,37 @@ enum CaseStatus {
 }
 
 model Case {
-  id          String         @id @default(cuid())
-  nome        String
-  tipo        CaseTipo
-  municipio   String
-  estado      String
-  descricao   String?
-  lat         Float?
-  lng         Float?
-  fonteDados  String?
-  denunciante String?
-  prioridade  CasePrioridade @default(media)
-  status      CaseStatus     @default(pendente)
+  id                          String         @id @default(cuid())
+  nome                        String
+  tipo                        CaseTipo
+  municipio                   String
+  estado                      String
+  descricao                   String?
+  lat                         Float?
+  lng                         Float?
+  fonteDados                  String?
+  denunciante                 String?
+  prioridade                  CasePrioridade @default(media)
+  status                      CaseStatus     @default(rascunho)
+  declarationAccepted         Boolean        @default(false)
+  declarationVersion          String?
+  declarationText             String?        @db.Text
+  declarationHash             String?
+  declarationContentHash      String?
+  declarationAcceptedRevision Int?
+  declarationAcceptedAt       DateTime?
+  declarationAcceptedById     String?
+  declarationAcceptedBy       User?          @relation("CaseDeclarationAcceptedBy", fields: [declarationAcceptedById], references: [id], onDelete: SetNull)
+  /// Nulo identifica registros legados e escritas de pods anteriores durante rolling deploy.
+  formSchemaVersion           String?
+  submittedAt                 DateTime?
+  revision                    Int            @default(0)
 
-  anexoUrl   String?
-  anexoNome  String?
-  anexoKey   String?
+  anexoUrl                    String?
+  anexoNome                   String?
+  anexoKey                    String?
+  /// Última chave legada materializada em CaseDocument pela reconciliação periódica.
+  legacyEvidenceReconciledKey String?
 
   createdById String
   createdBy   User   @relation("CaseCreatedBy", fields: [createdById], references: [id])
@@ -214,12 +335,125 @@ model Case {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  statusHistory CaseStatusHistory[]
-  notifications Notification[]
+  statusHistory     CaseStatusHistory[]
+  notifications     Notification[]
+  contribution      CaseContribution?
+  sources           CaseSource[]
+  documents         CaseDocument[]
+  facets            CaseFacetSelection[]
+  spatialReferences CaseSpatialReference[]
+  datasets          Dataset[]
 
   @@index([status])
   @@index([municipio])
+  @@index([formSchemaVersion])
   @@map("cases")
+}
+
+model CaseContribution {
+  id                         String   @id @default(cuid())
+  caseId                     String   @unique
+  case                       Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  relacaoPesquisador         String?
+  participouProducao         Boolean?
+  participouValidacao        Boolean?
+  responsavelValidacao       String?
+  instrumentoCentral         String?
+  objetoEspolio              String?
+  instituicaoPromotora       String?
+  grauPublicidadeInformacoes String?
+  possuiRestricaoDivulgacao  Boolean?
+  restricaoDivulgacao        String?
+  periodoInicio              Int?
+  periodoFim                 Int?
+  situacaoCancelamento       String?
+  orgaoCancelamento          String?
+  retornouPatrimonioPublico  Boolean?
+  destinacaoPosterior        String?
+  situacaoAtualImovel        String?
+  conflitos                  String?
+  sujeitosSociais            String?
+  escalaEspacial             String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@map("case_contributions")
+}
+
+model CaseSource {
+  id              String         @id @default(cuid())
+  caseId          String
+  case            Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  titulo          String
+  tipo            String?
+  referencia      String?
+  grauPublicidade String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  documents       CaseDocument[]
+
+  @@index([caseId])
+  @@map("case_sources")
+}
+
+model CaseDocument {
+  id                      String         @id @default(cuid())
+  caseId                  String
+  case                    Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  sourceId                String?
+  source                  CaseSource?    @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  uploadedById            String
+  uploadedBy              User           @relation("CaseDocumentUploadedBy", fields: [uploadedById], references: [id])
+  nome                    String
+  mimeType                String
+  tamanho                 Int
+  storageKey              String         @unique
+  visibility              DataVisibility @default(restrito)
+  requestedPublic         Boolean        @default(false)
+  publicationApprovedAt   DateTime?
+  publicationApprovedById String?
+  publicationApprovedBy   User?          @relation("CaseDocumentApprovedBy", fields: [publicationApprovedById], references: [id], onDelete: SetNull)
+  possuiDadosPessoais     Boolean        @default(false)
+  motivoRestricao         String?
+  migrationStatus         String         @default("native")
+  migrationError          String?
+  migrationClaimedAt      DateTime?
+  migrationNextAttemptAt  DateTime?
+  createdAt               DateTime       @default(now())
+
+  @@index([caseId])
+  @@index([sourceId])
+  @@index([migrationStatus])
+  @@index([migrationStatus, migrationClaimedAt])
+  @@index([migrationStatus, migrationNextAttemptAt])
+  @@map("case_documents")
+}
+
+model CaseFacetSelection {
+  id         String     @id @default(cuid())
+  caseId     String
+  case       Case       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  optionId   String
+  option     FormOption @relation(fields: [optionId], references: [id])
+  valorOutro String?
+  createdAt  DateTime   @default(now())
+
+  @@unique([caseId, optionId])
+  @@index([caseId])
+  @@map("case_facet_selections")
+}
+
+model CaseSpatialReference {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  tipo      String
+  valor     String
+  descricao String?
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+  @@map("case_spatial_references")
 }
 
 model CaseStatusHistory {
