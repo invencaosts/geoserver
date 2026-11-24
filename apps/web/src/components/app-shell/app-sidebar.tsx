@@ -1,20 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  Camera,
-  ChevronsUpDown,
-  LogIn,
-  LogOut,
-  PanelLeft,
-  UserCircle,
-} from "lucide-react";
+import { Camera, ChevronsUpDown, LogIn, LogOut, PanelLeft, UserCircle } from "lucide-react";
 import { ROLE_LABEL, userHasPermission } from "@geo/shared";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand-logo";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -79,28 +72,14 @@ export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onTogg
             type="button"
             onClick={onToggle}
             title="Expandir menu"
-            className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#fbfaf4] p-1 transition-colors hover:bg-[#f3f1e7]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center transition-colors hover:bg-sidebar-accent"
           >
-            <Image
-              src="/branding/logo-olho.png"
-              alt="Observatório Grilagem de Terras"
-              width={512}
-              height={495}
-              className="h-full w-full object-contain"
-              priority
-            />
+            <BrandLogo variant="mark" className="h-8 w-8" />
           </button>
         ) : (
           <>
-            <div className="flex min-w-0 flex-1 items-center bg-[#fbfaf4] px-1.5 py-1">
-              <Image
-                src="/branding/logo-observatorio.png"
-                alt="Observatório Grilagem de Terras"
-                width={1200}
-                height={357}
-                className="h-9 w-full object-contain"
-                priority
-              />
+            <div className="flex min-w-0 flex-1 items-center">
+              <BrandLogo className="h-9 w-full" />
             </div>
             <Button
               variant="ghost"

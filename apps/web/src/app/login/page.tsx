@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Database, MapPinned, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand-logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -128,7 +128,7 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* painel de marca */}
-      <div className="relative hidden overflow-hidden bg-[oklch(0.16_0.02_240)] lg:flex lg:flex-col lg:justify-between lg:p-10">
+      <div className="login-brand-panel relative hidden overflow-hidden bg-[oklch(0.16_0.02_240)] lg:flex lg:flex-col lg:justify-between lg:p-10">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -140,15 +140,8 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-primary/25 blur-[110px]" />
         <div className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-violet-500/15 blur-[110px]" />
 
-        <div className="relative w-fit bg-[#fbfaf4] px-3 py-2">
-          <Image
-            src="/branding/logo-observatorio.png"
-            alt="Observatório Grilagem de Terras"
-            width={1200}
-            height={357}
-            className="h-14 w-auto"
-            priority
-          />
+        <div className="relative w-fit">
+          <BrandLogo className="h-14 w-48" />
         </div>
 
         <div className="relative max-w-md space-y-8">
@@ -194,15 +187,8 @@ export default function LoginPage() {
           }
         >
           <div className="space-y-1.5 lg:hidden">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center bg-[#fbfaf4] p-1">
-              <Image
-                src="/branding/logo-olho.png"
-                alt="Observatório Grilagem de Terras"
-                width={512}
-                height={495}
-                className="h-full w-full object-contain"
-                priority
-              />
+            <div className="mb-4 flex h-12 w-12 items-center justify-center">
+              <BrandLogo variant="mark" className="h-11 w-11" />
             </div>
           </div>
 

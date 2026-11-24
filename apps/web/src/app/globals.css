@@ -55,6 +55,7 @@
 /* Território — registro cartográfico. Paleta e tipografia escolhidas: papel/pergaminho,
    terracota como tinta de destaque, musgo/ocre como cor semântica de estado. */
 :root {
+  --brand-logo-color: #8a3b1f;
   --background: #f3f1e7;
   --foreground: #2b2a22;
   --card: #fbfaf4;
@@ -95,6 +96,7 @@
 
 /* variante escura — mesmo registro, tinta em papel escurecido, não inversão automática */
 .dark {
+  --brand-logo-color: #d98a5e;
   --background: #1c1712;
   --foreground: #ece6d5;
   --card: #241e17;
@@ -134,6 +136,7 @@
 
 /* alto contraste — WCAG AAA, preto/branco puros, sem gradientes ou transparência */
 .contraste {
+  --brand-logo-color: #ffff00;
   --background: #000000;
   --foreground: #ffffff;
   --card: #000000;
@@ -194,6 +197,32 @@
 }
 
 @layer utilities {
+  .brand-logo {
+    display: block;
+    background-color: var(--brand-logo-color);
+    mask-image: var(--brand-logo-image);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-image: var(--brand-logo-image);
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+  }
+  .brand-logo--full {
+    --brand-logo-image: url("/branding/logo-observatorio.png");
+    aspect-ratio: 1200 / 357;
+  }
+  .brand-logo--mark {
+    --brand-logo-image: url("/branding/logo-olho.png");
+    aspect-ratio: 512 / 495;
+  }
+  .login-brand-panel .brand-logo {
+    --brand-logo-color: #d98a5e;
+  }
+  .contraste .login-brand-panel .brand-logo {
+    --brand-logo-color: #ffff00;
+  }
   .glass-panel {
     @apply bg-card/90 backdrop-blur-xl border border-border shadow-lg shadow-black/5 dark:shadow-black/40;
   }
