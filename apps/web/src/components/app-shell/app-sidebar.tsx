@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -8,7 +9,6 @@ import {
   ChevronsUpDown,
   LogIn,
   LogOut,
-  MapPinned,
   PanelLeft,
   UserCircle,
 } from "lucide-react";
@@ -79,19 +79,28 @@ export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onTogg
             type="button"
             onClick={onToggle}
             title="Expandir menu"
-            className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-primary-foreground transition-colors hover:bg-primary/85"
+            className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#fbfaf4] p-1 transition-colors hover:bg-[#f3f1e7]"
           >
-            <MapPinned className="h-4 w-4" />
+            <Image
+              src="/branding/logo-olho.png"
+              alt="Observatório Grilagem de Terras"
+              width={512}
+              height={495}
+              className="h-full w-full object-contain"
+              priority
+            />
           </button>
         ) : (
           <>
-            <div className="flex min-w-0 items-center gap-2.5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-primary-foreground">
-                <MapPinned className="h-4 w-4" />
-              </div>
-              <span className="truncate font-display text-[14.5px] font-bold tracking-tight text-sidebar-foreground">
-                Observatório Grilagem de Terras
-              </span>
+            <div className="flex min-w-0 flex-1 items-center bg-[#fbfaf4] px-1.5 py-1">
+              <Image
+                src="/branding/logo-observatorio.png"
+                alt="Observatório Grilagem de Terras"
+                width={1200}
+                height={357}
+                className="h-9 w-full object-contain"
+                priority
+              />
             </div>
             <Button
               variant="ghost"

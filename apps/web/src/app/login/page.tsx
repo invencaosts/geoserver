@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -139,11 +140,15 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-primary/25 blur-[110px]" />
         <div className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-violet-500/15 blur-[110px]" />
 
-        <div className="relative flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg shadow-primary/30">
-            <MapPinned className="h-4.5 w-4.5" />
-          </div>
-          <span className="text-sm font-semibold text-white">Observatório Grilagem de Terras</span>
+        <div className="relative w-fit bg-[#fbfaf4] px-3 py-2">
+          <Image
+            src="/branding/logo-observatorio.png"
+            alt="Observatório Grilagem de Terras"
+            width={1200}
+            height={357}
+            className="h-14 w-auto"
+            priority
+          />
         </div>
 
         <div className="relative max-w-md space-y-8">
@@ -189,8 +194,15 @@ export default function LoginPage() {
           }
         >
           <div className="space-y-1.5 lg:hidden">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-[10px] bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
-              <MapPinned className="h-5 w-5" />
+            <div className="mb-4 flex h-12 w-12 items-center justify-center bg-[#fbfaf4] p-1">
+              <Image
+                src="/branding/logo-olho.png"
+                alt="Observatório Grilagem de Terras"
+                width={512}
+                height={495}
+                className="h-full w-full object-contain"
+                priority
+              />
             </div>
           </div>
 
