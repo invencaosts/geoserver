@@ -20,7 +20,8 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "seed:instituicoes": "ts-node -r tsconfig-paths/register prisma/seed-instituicoes.ts",
     "seed:timeline": "ts-node -r tsconfig-paths/register prisma/seed-timeline.ts",
-    "seed:usuarios": "ts-node -r tsconfig-paths/register prisma/seed-usuarios.ts"
+    "seed:usuarios": "ts-node -r tsconfig-paths/register prisma/seed-usuarios.ts",
+    "validate:real-datasets": "ts-node --transpile-only --compiler-options '{\"rootDir\":\".\"}' src/datasets/validate-real-datasets.cli.ts"
   },
   "dependencies": {
     "@geo/shared": "workspace:*",
@@ -50,6 +51,7 @@
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.20.2",
     "pg": "^8.23.0",
+    "proj4": "2.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "shpjs": "^6.2.0",
@@ -58,6 +60,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
+    "@mapbox/vector-tile": "^3.0.0",
     "@nestjs/cli": "^12.0.8",
     "@nestjs/schematics": "^12.0.6",
     "@nestjs/testing": "^12.1.2",
@@ -74,6 +77,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "globals": "^17.12.0",
+    "pbf": "^5.2.0",
     "prettier": "^3.9.9",
     "prisma": "^7.10.0",
     "source-map-support": "^0.5.21",

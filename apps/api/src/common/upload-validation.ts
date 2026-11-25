@@ -1,7 +1,7 @@
 import { UnsupportedMediaTypeException } from "@nestjs/common";
-import { inspectZipArchive } from "./zip-safety";
+import { DATASET_ZIP_MAX_UNCOMPRESSED_BYTES, inspectZipArchive } from "./zip-safety";
 
-export const DATASET_MAX_BYTES = 25 * 1024 * 1024;
+export const DATASET_MAX_BYTES = 100 * 1024 * 1024;
 export const ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024;
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -22,9 +22,9 @@ function isZip(buffer: Buffer) {
   return hasPrefix(buffer, [0x50, 0x4b, 0x03, 0x04]);
 }
 
-async function zipEntryNames(buffer: Buffer): Promise<string[]> {
+async function zipEntryNames(buffer: Buffer, maxUncompressedBytes?: number): Promise<string[]> {
   if (!isZip(buffer)) rejected("O conteúdo do arquivo não é um ZIP válido");
-  const zip = await inspectZipArchive(buffer);
+  const zip = await inspectZipArchive(buffer, maxUncompressedBytes);
   return Object.values(zip.files)
     .filter((entry) => !entry.dir)
     .map((entry) => entry.name.toLowerCase());
@@ -78,7 +78,7 @@ export async function validateDatasetUpload(file: Express.Multer.File): Promise<
   }
 
   if (extension === "zip") {
-    const names = await zipEntryNames(file.buffer);
+    const names = await zipEntryNames(file.buffer, DATASET_ZIP_MAX_UNCOMPRESSED_BYTES);
     const hasRequiredShapefileParts = [".shp", ".shx", ".dbf"].every((suffix) =>
       names.some((name) => name.endsWith(suffix)),
     );
@@ -92,8 +92,13 @@ export async function validateDatasetUpload(file: Express.Multer.File): Promise<
 
   if (extension === "geojson" || extension === "json") {
     try {
-      const json = JSON.parse(safeText(file.buffer));
-      if (json && (json.type === "Feature" || json.type === "FeatureCollection")) {
+      const json: unknown = JSON.parse(safeText(file.buffer));
+      if (
+        json &&
+        typeof json === "object" &&
+        "type" in json &&
+        (json.type === "Feature" || json.type === "FeatureCollection")
+      ) {
         return { contentType: "application/geo+json", extension };
       }
     } catch (error) {

@@ -3,6 +3,8 @@ import JSZip from "jszip";
 
 export const ZIP_MAX_ENTRIES = 256;
 export const ZIP_MAX_UNCOMPRESSED_BYTES = 100 * 1024 * 1024;
+/** Dataset Shapefile pode ter DBF grande; anexos mantêm a cota original. */
+export const DATASET_ZIP_MAX_UNCOMPRESSED_BYTES = 256 * 1024 * 1024;
 export const ZIP_MAX_COMPRESSION_RATIO = 200;
 
 interface CompressedEntryData {
@@ -10,7 +12,10 @@ interface CompressedEntryData {
   uncompressedSize?: number;
 }
 
-export async function inspectZipArchive(buffer: Buffer): Promise<JSZip> {
+export async function inspectZipArchive(
+  buffer: Buffer,
+  maxUncompressedBytes = ZIP_MAX_UNCOMPRESSED_BYTES,
+): Promise<JSZip> {
   let zip: JSZip;
   try {
     zip = await JSZip.loadAsync(buffer);
@@ -20,9 +25,7 @@ export async function inspectZipArchive(buffer: Buffer): Promise<JSZip> {
 
   const entries = Object.values(zip.files);
   if (entries.length > ZIP_MAX_ENTRIES) {
-    throw new PayloadTooLargeException(
-      `O ZIP excede o limite de ${ZIP_MAX_ENTRIES} entradas`,
-    );
+    throw new PayloadTooLargeException(`O ZIP excede o limite de ${ZIP_MAX_ENTRIES} entradas`);
   }
 
   let totalUncompressed = 0;
@@ -44,8 +47,10 @@ export async function inspectZipArchive(buffer: Buffer): Promise<JSZip> {
     }
 
     totalUncompressed += uncompressedSize;
-    if (totalUncompressed > ZIP_MAX_UNCOMPRESSED_BYTES) {
-      throw new PayloadTooLargeException("O ZIP excede o limite de 100 MB descompactados");
+    if (totalUncompressed > maxUncompressedBytes) {
+      throw new PayloadTooLargeException(
+        `O ZIP excede o limite de ${maxUncompressedBytes / 1024 / 1024} MB descompactados`,
+      );
     }
 
     if (

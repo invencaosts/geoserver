@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, NotFoundException } from "@nes
 import type { Queue } from "bullmq";
 import type { PrismaService } from "../prisma/prisma.service";
 import type { MinioService } from "../storage/minio.service";
-import { DatasetsService, MAP_FEATURE_LIMIT } from "./datasets.service";
+import { DatasetsService } from "./datasets.service";
 import { LEGACY_VALIDATED_CASE_SCHEMA_VERSION, type AuthUser } from "@geo/shared";
 import { DatasetsController } from "./datasets.controller";
 import { PERMISSIONS_KEY } from "../common/permissions.decorator";
@@ -84,9 +84,10 @@ describe("DatasetsService.remove", () => {
   it("invalida o aceite ao remover dataset vinculado de um rascunho", async () => {
     prisma.dataset.findUnique.mockResolvedValue({ ...dataset(), caseId: "case-1" });
     const updateMany = vi.fn().mockResolvedValue({ count: 1 });
-    (prisma as any).$transaction = vi.fn((operation: any) =>
-      operation({ dataset: prisma.dataset, case: { updateMany } }),
-    );
+    const tx = { dataset: prisma.dataset, case: { updateMany } };
+    Object.assign(prisma, {
+      $transaction: vi.fn((operation: (client: typeof tx) => unknown) => operation(tx)),
+    });
 
     await service.remove("ds-1", admin);
 
@@ -96,7 +97,7 @@ describe("DatasetsService.remove", () => {
         declarationAccepted: false,
         declarationContentHash: null,
         revision: { increment: 1 },
-      }),
+      }) as unknown,
     });
   });
 
@@ -199,38 +200,54 @@ describe("DatasetsService.remove", () => {
 });
 
 describe("DatasetsService.getMapFeatures", () => {
-  it("limita a quantidade de feições devolvidas ao mapa", async () => {
-    const rows = Array.from({ length: MAP_FEATURE_LIMIT + 1 }, (_, index) => ({
-      id: `feature-${index}`,
-      properties: {},
-      geometry: '{"type":"Point","coordinates":[0,0]}',
-    }));
+  it("pagina com IDs estáveis, geometria original e atributos associados", async () => {
+    const rows = [
+      {
+        id: "f1",
+        properties: { nome: "Carnaíba", area: 12.5, cpf: "secreto" },
+        geometry: '{"type":"Point","coordinates":[-37.7860389957,-10.9412705554]}',
+      },
+      {
+        id: "f2",
+        properties: { nome: "Outro" },
+        geometry: '{"type":"Point","coordinates":[-45,-12]}',
+      },
+    ];
     const prisma = {
       dataset: { findUnique: vi.fn().mockResolvedValue(dataset()) },
-      case: { findUnique: vi.fn() },
       $queryRaw: vi.fn().mockResolvedValue(rows),
     };
     const service = new DatasetsService(
       prisma as unknown as PrismaService,
       {} as MinioService,
-      { add: vi.fn() } as unknown as Queue,
+      {} as Queue,
     );
-
-    const result = await service.getMapFeatures("ds-1", admin);
-
-    expect(result.features).toHaveLength(MAP_FEATURE_LIMIT);
-    expect(result).toMatchObject({
-      preview: true,
-      generalized: true,
-      truncated: true,
-      limit: MAP_FEATURE_LIMIT,
-    });
-    expect(result.features[0]).toEqual({
-      type: "Feature",
-      geometry: { type: "Point", coordinates: [0, 0] },
-      properties: {},
-    });
-    expect(result.features[0]).not.toHaveProperty("id");
+    const result = await service.getMapFeatures("ds-1", admin, { pageSize: 1 });
+    expect(result.nextCursor).toBe("f1");
+    expect(result.features).toEqual([
+      {
+        type: "Feature",
+        id: "f1",
+        datasetId: "ds-1",
+        geometry: { type: "Point", coordinates: [-37.7860389957, -10.9412705554] },
+        properties: { nome: "Carnaíba", area: 12.5 },
+      },
+    ]);
+  });
+  it("autoriza antes de consultar geometrias ou detalhes", async () => {
+    const prisma = {
+      dataset: { findUnique: vi.fn().mockResolvedValue(dataset()) },
+      $queryRaw: vi.fn(),
+    };
+    const service = new DatasetsService(
+      prisma as unknown as PrismaService,
+      {} as MinioService,
+      {} as Queue,
+    );
+    await expect(service.getMapFeatures("ds-1")).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.getMapFeature("ds-1", "f1")).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.getMapTile("ds-1", 0, 0, 0)).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.$queryRaw).not.toHaveBeenCalled();
   });
 });
 
@@ -280,13 +297,16 @@ describe("DatasetsService.getFeatures", () => {
 });
 
 describe("DatasetsController RBAC", () => {
-  it("reserva feições paginadas à permissão de exportação e mantém só a prévia no mapa", () => {
+  it("reserva geometria original a data:export e mantém detalhes/tiles com dataset:read", () => {
+    // Metadata reflection intentionally receives the unbound method.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(Reflect.getMetadata(PERMISSIONS_KEY, DatasetsController.prototype.getFeatures)).toEqual([
       "data:export",
     ]);
     expect(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       Reflect.getMetadata(PERMISSIONS_KEY, DatasetsController.prototype.getMapFeatures),
-    ).toEqual(["dataset:read"]);
+    ).toEqual(["data:export"]);
   });
 });
 

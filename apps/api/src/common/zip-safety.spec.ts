@@ -3,6 +3,7 @@ import {
   inspectZipArchive,
   ZIP_MAX_ENTRIES,
   ZIP_MAX_UNCOMPRESSED_BYTES,
+  DATASET_ZIP_MAX_UNCOMPRESSED_BYTES,
 } from "./zip-safety";
 
 async function makeZip(files: Record<string, string>) {
@@ -38,5 +39,14 @@ describe("segurança de ZIP", () => {
     const buffer = await makeZip({ "zeros.bin": "0".repeat(1024 * 1024) });
     await expect(inspectZipArchive(buffer)).rejects.toMatchObject({ status: 413 });
   });
-});
 
+  it("mantém a cota original de anexos ao permitir orçamento maior específico de datasets", async () => {
+    const buffer = await makeZip({ "doc.kml": "<kml></kml>" });
+    expect(DATASET_ZIP_MAX_UNCOMPRESSED_BYTES).toBeGreaterThan(ZIP_MAX_UNCOMPRESSED_BYTES);
+    await expect(inspectZipArchive(buffer, 5)).rejects.toMatchObject({ status: 413 });
+    await expect(inspectZipArchive(buffer)).resolves.toBeDefined();
+    await expect(
+      inspectZipArchive(buffer, DATASET_ZIP_MAX_UNCOMPRESSED_BYTES),
+    ).resolves.toBeDefined();
+  });
+});

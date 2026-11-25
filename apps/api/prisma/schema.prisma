@@ -239,6 +239,7 @@ model Dataset {
   status                  DatasetStatus   @default(processing)
   registros               Int             @default(0)
   projecaoOriginal        String?
+  mapConfig              Json?
   storageKey              String?
   erro                    String?
   caseId                  String?
@@ -267,11 +268,12 @@ model Feature {
   id         String                                 @id @default(cuid())
   datasetId  String
   dataset    Dataset                                @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  geom       Unsupported("geometry(Geometry,4326)")
+  geom       Unsupported("geometry")
   properties Json                                   @default("{}")
   createdAt  DateTime                               @default(now())
 
   @@index([datasetId])
+  @@index([geom], type: Gist, map: "features_geom_gist_idx")
   @@map("features")
 }
 

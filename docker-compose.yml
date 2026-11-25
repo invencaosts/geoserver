@@ -70,6 +70,10 @@ services:
   martin:
     image: ghcr.io/maplibre/martin:latest
     restart: unless-stopped
+    profiles: ["public-tiles"]
+    command: ["--config", "/config.yaml"]
+    volumes:
+      - ./infra/martin/config.yaml:/config.yaml:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,4 +81,4 @@ services:
       DATABASE_URL: postgres://geo:geo_dev_pw@postgres:5432/geo_grilagem
       MARTIN_LISTEN_ADDRESSES: 0.0.0.0:3000
     ports:
-      - "3010:3000"
+      - "127.0.0.1:3010:3000"

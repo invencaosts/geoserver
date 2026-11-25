@@ -262,12 +262,14 @@ function UploadDialog() {
               <Input
                 id="dataset-arquivo"
                 type="file"
-                accept=".zip,.geojson,.json,.kml,.csv"
+                accept=".zip,.geojson,.json,.kml,.kmz,.csv"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Shapefile: envie um .zip contendo .shp/.dbf/.shx. CSV precisa de colunas lat/lng.
+                Até 100 MB por arquivo. Shapefile: envie um ZIP com .shp, .shx, .dbf e .prj do mesmo
+                nome; inclua .cpg ou .cst quando disponível para preservar os acentos. Limite
+                descompactado: 256 MB. CSV precisa de colunas lat/lng.
               </p>
             </div>
           </SheetBody>

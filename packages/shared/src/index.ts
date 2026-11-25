@@ -203,6 +203,46 @@ export interface DatasetDTO {
   createdAt: string;
 }
 
+export interface DatasetMapConfig {
+  titleField: string | null;
+  visibleFields: string[] | null;
+  labels: Record<string, string>;
+  publicFields: string[];
+  color: string | null;
+}
+
+export interface DatasetMapField {
+  name: string;
+  label: string;
+  type: string;
+}
+
+export interface DatasetMapMetadata {
+  datasetId: string;
+  name: string;
+  bounds: [number, number, number, number] | null;
+  geometryTypes: string[];
+  fields: DatasetMapField[];
+  config: DatasetMapConfig;
+  canConfigure: boolean;
+  canApproveFields: boolean;
+}
+
+export interface DatasetMapFeatureDetail {
+  id: string;
+  datasetId: string;
+  layerName: string;
+  title: string;
+  geometryType: string;
+  properties: Record<string, unknown>;
+  labels: Record<string, string>;
+}
+
+export interface DatasetMapClusterMembers {
+  features: { id: string; datasetId: string; title: string }[];
+  nextCursor: string | null;
+}
+
 export type CaseTipo = "institucional" | "titulo_falso" | "car";
 
 export const CASE_TIPO_LABEL: Record<CaseTipo, string> = {

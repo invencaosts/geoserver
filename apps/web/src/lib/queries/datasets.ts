@@ -11,7 +11,7 @@ export function useDatasets() {
     queryKey: ["datasets", userId],
     queryFn: () => apiFetch<DatasetDTO[]>("/datasets"),
     refetchInterval: (query) =>
-      query.state.data?.some((d) => d.status === "processing") ? 2000 : false,
+      query.state.data?.some((d) => d.status === "processing") ? 2000 : 60_000,
   });
 }
 

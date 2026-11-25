@@ -1,6 +1,6 @@
 import { useAuthStore } from "./auth-store";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
 export class ApiError extends Error {
   status: number;
@@ -14,6 +14,7 @@ interface RequestOptions {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   formData?: FormData;
+  signal?: AbortSignal;
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -27,6 +28,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     method: options.method ?? "GET",
     headers,
     body: options.formData ?? (options.body ? JSON.stringify(options.body) : undefined),
+    signal: options.signal,
   });
 
   if (res.status === 401) {

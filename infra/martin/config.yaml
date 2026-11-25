@@ -1,0 +1,7 @@
+# Martin é opcional e só pode servir fontes públicas explicitamente configuradas.
+# Datasets importados usam a API autenticada /api/datasets/:id/tiles/..., que aplica
+# as mesmas permissões dos detalhes. Nunca habilite descoberta automática aqui.
+listen_addresses: "0.0.0.0:3000"
+postgres:
+  connection_string: ${DATABASE_URL}
+  auto_publish: false

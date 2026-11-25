@@ -7,10 +7,11 @@ import { CASE_TIPO_LABEL as TIPO_LABEL, type CaseTipo } from "@geo/shared";
 import { Input } from "@/components/ui/input";
 import { MapView } from "@/components/map/map-view";
 import { LayersPanel } from "@/components/map/layers-panel";
+import { DatasetMapLayers } from "@/components/map/dataset-map-layers";
+import { replaceMapPopup } from "@/components/map/map-popup";
+import { applyToMapStyle } from "@/components/map/map-style-ready";
+import { useAuthStore } from "@/lib/auth-store";
 import { useCaseMapPoints } from "@/lib/queries/cases";
-import { useDatasets } from "@/lib/queries/datasets";
-import { apiFetch } from "@/lib/api";
-import { toast } from "sonner";
 
 const PRIORIDADE_COLOR: Record<string, string> = {
   critica: "#ef4444",
@@ -29,13 +30,21 @@ const STATUS_LABEL: Record<string, string> = {
 export default function MapaPage() {
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const boundsFitRef = useRef(false);
+  const casePopupRef = useRef<maplibregl.Popup | null>(null);
+  const token = useAuthStore((state) => state.token);
   const [search, setSearch] = useState("");
   const { data: cases } = useCaseMapPoints();
-  const { data: datasets } = useDatasets();
 
   const onMapReady = useCallback((map: maplibregl.Map) => {
     setMap(map);
   }, []);
+
+  useEffect(() => {
+    casePopupRef.current?.remove();
+    return () => {
+      casePopupRef.current?.remove();
+    };
+  }, [map, token]);
 
   // plota casos de grilagem como pontos coloridos por prioridade
   useEffect(() => {
@@ -44,7 +53,7 @@ export default function MapaPage() {
     const geojson = {
       type: "FeatureCollection" as const,
       features: cases
-        .filter((c) => c.lat != null && c.lng != null)
+        .filter((c): c is typeof c & { lat: number; lng: number } => c.lat != null && c.lng != null)
         .map((c) => ({
           type: "Feature" as const,
           geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] },
@@ -55,9 +64,9 @@ export default function MapaPage() {
     const apply = () => {
       const source = map.getSource("cases") as maplibregl.GeoJSONSource | undefined;
       if (source) {
-        source.setData(geojson as any);
+        source.setData(geojson);
       } else {
-        map.addSource("cases", { type: "geojson", data: geojson as any });
+        map.addSource("cases", { type: "geojson", data: geojson });
         map.addLayer({
           id: "cases-circle",
           type: "circle",
@@ -102,7 +111,11 @@ export default function MapaPage() {
           const statusLine = document.createElement("div");
           statusLine.textContent = `Prioridade: ${prioridade} · ${STATUS_LABEL[status] ?? status}`;
           content.append(title, typeLine, statusLine);
-          new maplibregl.Popup({ closeButton: true, offset: 10 })
+          casePopupRef.current?.remove();
+          casePopupRef.current = replaceMapPopup(
+            map,
+            new maplibregl.Popup({ closeButton: true, offset: 10 }),
+          )
             .setLngLat(feature.geometry.coordinates as [number, number])
             .setDOMContent(content)
             .addTo(map);
@@ -134,87 +147,13 @@ export default function MapaPage() {
       }
     };
 
-    if (map.isStyleLoaded()) apply();
-    else map.once("load", apply);
+    return applyToMapStyle(map, apply);
   }, [map, cases]);
-
-  // plota features dos datasets ativos
-  useEffect(() => {
-    if (!map) return;
-
-    // Uma sessão expirada ou uma listagem que falhou não pode conservar no mapa
-    // camadas restritas carregadas por uma autorização anterior.
-    const active = datasets?.filter((d) => d.status === "active") ?? [];
-    const authorizedSourceIds = new Set(active.map((dataset) => `dataset-${dataset.id}`));
-    for (const sourceId of Object.keys(map.getStyle()?.sources ?? {})) {
-      if (!sourceId.startsWith("dataset-") || authorizedSourceIds.has(sourceId)) continue;
-      const layerId = `${sourceId}-layer`;
-      if (map.getLayer(layerId)) map.removeLayer(layerId);
-      if (map.getSource(sourceId)) map.removeSource(sourceId);
-    }
-    let cancelled = false;
-
-    active.forEach(async (dataset) => {
-      const sourceId = `dataset-${dataset.id}`;
-      if (map.getSource(sourceId)) return;
-      let geojson: {
-        type: "FeatureCollection";
-        features: unknown[];
-        truncated?: boolean;
-        limit?: number;
-      };
-      try {
-        geojson = await apiFetch(`/datasets/${dataset.id}/map-features`);
-      } catch {
-        // A autorização pode mudar enquanto as camadas são carregadas. A próxima
-        // atualização da listagem remove a camada sem deixar rejeição assíncrona solta.
-        return;
-      }
-      if (cancelled) return;
-      if (geojson.truncated) {
-        toast.warning(
-          `A camada ${dataset.nome} foi limitada a ${geojson.limit?.toLocaleString("pt-BR") ?? "1.000"} feições no mapa.`,
-        );
-      }
-
-      const addLayer = () => {
-        if (cancelled) return;
-        if (map.getSource(sourceId)) return;
-        map.addSource(sourceId, { type: "geojson", data: geojson as any });
-        map.addLayer({
-          id: `${sourceId}-layer`,
-          type:
-            dataset.tipoGeometria === "Polygon"
-              ? "fill"
-              : dataset.tipoGeometria === "Line"
-                ? "line"
-                : "circle",
-          source: sourceId,
-          paint:
-            dataset.tipoGeometria === "Polygon"
-              ? { "fill-color": "#22c55e", "fill-opacity": 0.35, "fill-outline-color": "#16a34a" }
-              : dataset.tipoGeometria === "Line"
-                ? { "line-color": "#3b82f6", "line-width": 2 }
-                : {
-                    "circle-radius": 5,
-                    "circle-color": "#3b82f6",
-                    "circle-stroke-width": 1,
-                    "circle-stroke-color": "#fff",
-                  },
-        } as maplibregl.LayerSpecification);
-      };
-
-      if (map.isStyleLoaded()) addLayer();
-      else map.once("load", addLayer);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [map, datasets]);
 
   return (
     <div className="relative h-full w-full">
       <MapView onMapReady={onMapReady} />
+      <DatasetMapLayers map={map} />
 
       <div className="absolute left-4 top-4 z-10">
         <LayersPanel />

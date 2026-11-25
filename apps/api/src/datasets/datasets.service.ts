@@ -19,6 +19,12 @@ import { MinioService } from "../storage/minio.service";
 import { validateDatasetUpload } from "../common/upload-validation";
 import type { CreateDatasetDto } from "./dto/create-dataset.dto";
 import { canReadDataset, datasetAccessWhere, isDatasetReviewer } from "./dataset-access.policy";
+import { DatasetMap } from "./dataset-map";
+import type {
+  DatasetMapConfigDto,
+  DatasetMapFeaturesQueryDto,
+  DatasetClusterQueryDto,
+} from "./dto/dataset-map-query.dto";
 
 const INVALIDATE_CASE_DECLARATION = {
   declarationAccepted: false,
@@ -42,11 +48,6 @@ const EXT_TO_FORMAT: Record<string, DatasetFormat> = {
 };
 
 export const DATASET_IMPORT_QUEUE = "dataset-import";
-/** Prévia cartográfica fixa: não é um endpoint alternativo de exportação. */
-export const MAP_FEATURE_LIMIT = 1_000;
-export const MAP_FEATURE_GRID_DEGREES = 0.005;
-export const MAP_FEATURE_DECIMAL_DIGITS = 3;
-
 const DATASET_PUBLIC_SELECT = {
   id: true,
   nome: true,
@@ -340,40 +341,43 @@ export class DatasetsService {
     };
   }
 
-  async getMapFeatures(datasetId: string, user?: AuthUser) {
-    await this.findOne(datasetId, user);
-    const rows = await this.prisma.$queryRaw<{ geometry: string | null }[]>`
-      SELECT ST_AsGeoJSON(
-        ST_Force2D(
-          ST_SimplifyPreserveTopology(
-            ST_SnapToGrid(geom, ${MAP_FEATURE_GRID_DEGREES}),
-            ${MAP_FEATURE_GRID_DEGREES}
-          )
-        ),
-        ${MAP_FEATURE_DECIMAL_DIGITS}
-      ) as geometry
-      FROM features
-      WHERE "datasetId" = ${datasetId}
-        AND NOT ST_IsEmpty(geom)
-      ORDER BY md5(id)
-      LIMIT ${MAP_FEATURE_LIMIT + 1}
-    `;
-    const geometries = rows.filter(
-      (row): row is { geometry: string } => typeof row.geometry === "string",
-    );
-    const truncated = geometries.length > MAP_FEATURE_LIMIT;
-    return {
-      type: "FeatureCollection",
-      preview: true,
-      generalized: true,
-      truncated,
-      limit: MAP_FEATURE_LIMIT,
-      features: geometries.slice(0, MAP_FEATURE_LIMIT).map((row) => ({
-        type: "Feature",
-        geometry: JSON.parse(row.geometry) as unknown,
-        properties: {},
-      })),
-    };
+  private async mapAccess(datasetId: string, user?: AuthUser) {
+    const dataset = await this.findOneRaw(datasetId);
+    await this.assertCanRead(dataset, user);
+    return new DatasetMap(this.prisma, dataset, user);
+  }
+
+  async getMapMetadata(datasetId: string, user?: AuthUser) {
+    return (await this.mapAccess(datasetId, user)).metadata();
+  }
+
+  async configureMap(datasetId: string, patch: DatasetMapConfigDto, user: AuthUser) {
+    return (await this.mapAccess(datasetId, user)).configure(patch);
+  }
+
+  async getMapFeatures(
+    datasetId: string,
+    user?: AuthUser,
+    query: DatasetMapFeaturesQueryDto = { pageSize: 100 },
+  ) {
+    // Original, paginated geometry is an export capability. The interactive map
+    // uses protected MVT plus attribute-only details and does not need this route.
+    if (!user || !hasPermission(user.role, "data:export")) {
+      throw new ForbiddenException("Seu perfil não possui permissão para exportar dados");
+    }
+    return (await this.mapAccess(datasetId, user)).features(query);
+  }
+
+  async getMapFeature(datasetId: string, featureId: string, user?: AuthUser) {
+    return (await this.mapAccess(datasetId, user)).detail(featureId);
+  }
+
+  async getMapClusterFeatures(datasetId: string, query: DatasetClusterQueryDto, user?: AuthUser) {
+    return (await this.mapAccess(datasetId, user)).clusterMembers(query);
+  }
+
+  async getMapTile(datasetId: string, z: number, x: number, y: number, user?: AuthUser) {
+    return (await this.mapAccess(datasetId, user)).tile(z, x, y);
   }
 
   static generateFeatureId() {

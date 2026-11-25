@@ -3,10 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -21,6 +24,12 @@ import { CurrentUser } from "../common/current-user.decorator";
 import type { AuthUser } from "@geo/shared";
 import { CreateDatasetDto, ReviewDatasetPublicationDto } from "./dto/create-dataset.dto";
 import { ListDatasetFeaturesQueryDto } from "./dto/list-dataset-features-query.dto";
+import {
+  DatasetMapConfigDto,
+  DatasetMapFeaturesQueryDto,
+  DatasetClusterQueryDto,
+} from "./dto/dataset-map-query.dto";
+import type { Response } from "express";
 
 @Controller("datasets")
 @UseGuards(OptionalJwtAuthGuard, PermissionsGuard)
@@ -56,9 +65,76 @@ export class DatasetsController {
   }
 
   @Get(":id/map-features")
+  @Header("Cache-Control", "private, no-store")
+  @Header("Vary", "Authorization")
+  @RequirePermissions("data:export")
+  getMapFeatures(
+    @Param("id") id: string,
+    @Query() query: DatasetMapFeaturesQueryDto,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    return this.datasetsService.getMapFeatures(id, user, query);
+  }
+
+  @Get(":id/map-metadata")
+  @Header("Cache-Control", "private, no-store")
+  @Header("Vary", "Authorization")
   @RequirePermissions("dataset:read")
-  getMapFeatures(@Param("id") id: string, @CurrentUser() user?: AuthUser) {
-    return this.datasetsService.getMapFeatures(id, user);
+  getMapMetadata(@Param("id") id: string, @CurrentUser() user?: AuthUser) {
+    return this.datasetsService.getMapMetadata(id, user);
+  }
+
+  @Get(":id/map-features/:featureId")
+  @Header("Cache-Control", "private, no-store")
+  @Header("Vary", "Authorization")
+  @RequirePermissions("dataset:read")
+  getMapFeature(
+    @Param("id") id: string,
+    @Param("featureId") featureId: string,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    return this.datasetsService.getMapFeature(id, featureId, user);
+  }
+
+  @Get(":id/map-cluster-features")
+  @Header("Cache-Control", "private, no-store")
+  @Header("Vary", "Authorization")
+  @RequirePermissions("dataset:read")
+  getMapClusterFeatures(
+    @Param("id") id: string,
+    @Query() query: DatasetClusterQueryDto,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    return this.datasetsService.getMapClusterFeatures(id, query, user);
+  }
+
+  @Get(":id/tiles/:z/:x/:y.mvt")
+  @RequirePermissions("dataset:read")
+  async getMapTile(
+    @Param("id") id: string,
+    @Param("z", ParseIntPipe) z: number,
+    @Param("x", ParseIntPipe) x: number,
+    @Param("y", ParseIntPipe) y: number,
+    @CurrentUser() user: AuthUser | undefined,
+    @Res() response: Response,
+  ) {
+    const tile = await this.datasetsService.getMapTile(id, z, x, y, user);
+    response.setHeader("Content-Type", "application/vnd.mapbox-vector-tile");
+    response.setHeader("Cache-Control", "private, no-store");
+    response.setHeader("Vary", "Authorization");
+    response.send(tile);
+  }
+
+  @Patch(":id/map-config")
+  @Header("Cache-Control", "private, no-store")
+  @Header("Vary", "Authorization")
+  @RequirePermissions("dataset:write")
+  configureMap(
+    @Param("id") id: string,
+    @Body() patch: DatasetMapConfigDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.datasetsService.configureMap(id, patch, user);
   }
 
   @Post()
