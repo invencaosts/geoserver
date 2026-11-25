@@ -1,0 +1,222 @@
+{
+  "passed": true,
+  "fixture": "Dados sintéticos, API local sem banco e fundo neutro de teste; nenhuma consulta a datasets reais ou tentativa de contornar bloqueio do provedor de tiles.",
+  "log": [
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 772.2,
+          "y": 421.2
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 772.2000000001783,
+        "y": 421.20000000013584,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "open-popup-restore-panels",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 1034,
+          "top": 181,
+          "right": 1394,
+          "bottom": 917,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1299.09375,
+          "top": 188,
+          "right": 1343.09375,
+          "bottom": 232,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 1045,
+          "top": 182,
+          "right": 1349.09375,
+          "bottom": 252,
+          "width": 304.09375,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "close-focus-reduced-motion",
+      "data": {
+        "active": true,
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "name": "landscape-all-open-reachable-list",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 844,
+          "bottom": 390,
+          "width": 592,
+          "height": 326
+        },
+        "popup": {
+          "left": 262.125,
+          "top": 262,
+          "right": 569.125,
+          "bottom": 380,
+          "width": 307,
+          "height": 118
+        },
+        "close": {
+          "left": 517.21875,
+          "top": 269,
+          "right": 561.21875,
+          "bottom": 313,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 263.125,
+          "top": 263,
+          "right": 567.21875,
+          "bottom": 333,
+          "width": 304.09375,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 46,
+        "sheet": true,
+        "obstacles": [
+          {
+            "left": 805,
+            "top": 278,
+            "right": 834,
+            "bottom": 336,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 575.25,
+            "top": 356,
+            "right": 834,
+            "bottom": 380,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 552,
+            "top": 182,
+            "right": 836,
+            "bottom": 254,
+            "width": 284,
+            "height": 72
+          },
+          {
+            "left": 260,
+            "top": 182,
+            "right": 544,
+            "bottom": 254,
+            "width": 284,
+            "height": 72
+          },
+          {
+            "left": 702,
+            "top": 72,
+            "right": 836,
+            "bottom": 120,
+            "width": 134,
+            "height": 48
+          },
+          {
+            "left": 260,
+            "top": 72,
+            "right": 698,
+            "bottom": 171,
+            "width": 438,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "restoration-focus-landscape-item40",
+      "data": true
+    }
+  ]
+}

@@ -49,7 +49,7 @@ torna públicos; a aprovação pelo fluxo existente continua necessária.
 
 ## Configurar a apresentação
 
-Na página **Mapa**, abra **Camadas importadas**, na legenda inferior esquerda.
+Na página **Mapa**, abra **Camadas de dados geográficos**, na legenda inferior esquerda.
 Cada camada tem cor, nome, controle de visibilidade e a ação **Enquadrar**.
 O botão de engrenagem **Configurar** abre **Apresentação no mapa** para quem pode
 configurar o dataset.

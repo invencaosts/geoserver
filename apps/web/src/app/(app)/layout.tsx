@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MapPinned, ShieldOff } from "lucide-react";
 import { userHasPermission } from "@geo/shared";
@@ -9,14 +9,48 @@ import { AppHeader } from "@/components/app-shell/app-header";
 import { NAV_ITEMS, RESTRICTED_ROUTES } from "@/components/app-shell/nav-config";
 import { useAuthStore } from "@/lib/auth-store";
 
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
+  const desktopSidebar = useRef(false);
+  const mobileMapSidebar = useRef(false);
+  const collapsedRef = useRef(collapsed);
+  const isMapRoute = pathname.startsWith("/mapa");
   const user = useAuthStore((s) => s.user);
 
-  useEffect(() => setHydrated(true), []);
+  useEffect(() => {
+    collapsedRef.current = collapsed;
+  }, [collapsed]);
+
+  useEffect(() => {
+    if (!isMapRoute) return;
+    const media = window.matchMedia("(max-width: 767px)");
+    const syncSidebar = () => {
+      if (media.matches && !mobileMapSidebar.current) {
+        desktopSidebar.current = collapsedRef.current;
+        mobileMapSidebar.current = true;
+        setCollapsed(true);
+      } else if (!media.matches && mobileMapSidebar.current) {
+        mobileMapSidebar.current = false;
+        setCollapsed(desktopSidebar.current);
+      }
+    };
+    syncSidebar();
+    media.addEventListener("change", syncSidebar);
+    return () => {
+      media.removeEventListener("change", syncSidebar);
+      if (mobileMapSidebar.current) {
+        mobileMapSidebar.current = false;
+        setCollapsed(desktopSidebar.current);
+      }
+    };
+  }, [isMapRoute]);
 
   const current = NAV_ITEMS.find((item) => pathname.startsWith(item.href));
   // A rota mais específica vence: /timeline/gerenciar antes de /timeline.

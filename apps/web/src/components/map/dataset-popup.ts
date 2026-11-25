@@ -23,7 +23,7 @@ function button(text: string, action: () => void) {
 
 export function createDatasetPopupController(popup: Popup, layerName: string) {
   const root = element("div");
-  root.className = "dataset-popup";
+  root.className = "dataset-popup map-popup-root";
   root.setAttribute("aria-live", "polite");
   popup.setDOMContent(root);
   let request: AbortController | undefined;
@@ -36,24 +36,35 @@ export function createDatasetPopupController(popup: Popup, layerName: string) {
     revision += 1;
   });
 
+  function render(title: string, ...children: HTMLElement[]) {
+    const header = element("div");
+    header.className = "map-popup-header";
+    const layer = element("p", layerName);
+    layer.className = "dataset-popup-layer";
+    header.append(element("h3", title), layer);
+    const body = element("div");
+    body.className = "map-popup-body";
+    body.tabIndex = 0;
+    body.setAttribute("role", "region");
+    body.setAttribute("aria-label", "Conteúdo dos detalhes");
+    body.append(...children);
+    root.replaceChildren(header, body);
+    return body;
+  }
+
   function start(title: string) {
     request?.abort();
     request = new AbortController();
     const current = ++revision;
-    const layer = element("p", layerName);
-    layer.className = "dataset-popup-layer";
-    root.replaceChildren(layer, element("h3", title), element("p", "Carregando atributos…"));
+    render(title, element("p", "Carregando atributos…"));
     return { signal: request.signal, current };
   }
 
   function error(current: number, retry: () => void) {
     if (disposed || current !== revision) return;
-    root.replaceChildren(
-      element("p", layerName),
-      element(
-        "p",
-        "Não foi possível carregar os detalhes. Verifique sua conexão e permissão de acesso.",
-      ),
+    render(
+      "Não foi possível carregar os detalhes",
+      element("p", "Verifique sua conexão e permissão de acesso."),
       button("Tentar novamente", retry),
     );
   }
@@ -66,9 +77,6 @@ export function createDatasetPopupController(popup: Popup, layerName: string) {
         { signal },
       );
       if (disposed || current !== revision) return;
-      const layer = element("p", detail.layerName);
-      layer.className = "dataset-popup-layer";
-      const title = element("h3", detail.title);
       const fields = element("dl");
       for (const [key, value] of Object.entries(detail.properties)) {
         if (isEmptyDatasetValue(value)) continue;
@@ -79,9 +87,9 @@ export function createDatasetPopupController(popup: Popup, layerName: string) {
       }
       const identity = element("p", `Feição: ${detail.id}`);
       identity.className = "dataset-popup-identity";
-      root.replaceChildren(layer, title);
-      if (back) root.append(button("Voltar ao agrupamento", back));
-      root.append(
+      const body = render(detail.title);
+      if (back) body.append(button("Voltar ao agrupamento", back));
+      body.append(
         fields.children.length
           ? fields
           : element("p", "Nenhum atributo disponível para este acesso."),
@@ -101,12 +109,7 @@ export function createDatasetPopupController(popup: Popup, layerName: string) {
     const status = element("p", "Carregando pontos…");
     const more = button("Carregar mais pontos", () => void load());
     const back = () => showCluster(datasetId, z, cellX, cellY, count);
-    root.replaceChildren(
-      element("p", layerName),
-      element("h3", `${count.toLocaleString("pt-BR")} pontos agrupados`),
-      list,
-      status,
-    );
+    const body = render(`${count.toLocaleString("pt-BR")} pontos agrupados`, list, status);
 
     async function load() {
       request?.abort();
@@ -134,13 +137,13 @@ export function createDatasetPopupController(popup: Popup, layerName: string) {
         status.textContent = cursor
           ? "Há mais pontos neste agrupamento."
           : "Todos os pontos deste agrupamento foram listados.";
-        if (cursor) root.append(more);
+        if (cursor) body.append(more);
         else more.remove();
       } catch {
         if (signal.aborted || disposed || current !== revision) return;
         status.textContent = "Não foi possível carregar os pontos.";
         more.textContent = "Tentar novamente";
-        root.append(more);
+        body.append(more);
       } finally {
         more.disabled = false;
       }

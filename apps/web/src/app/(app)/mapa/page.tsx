@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
-import { Search } from "lucide-react";
 import { CASE_TIPO_LABEL as TIPO_LABEL, type CaseTipo } from "@geo/shared";
 import { Input } from "@/components/ui/input";
 import { MapView } from "@/components/map/map-view";
 import { LayersPanel } from "@/components/map/layers-panel";
+import { MapPanel, MapPanelsProvider, MapPanelsToggle } from "@/components/map/map-panels";
 import { DatasetMapLayers } from "@/components/map/dataset-map-layers";
 import { replaceMapPopup } from "@/components/map/map-popup";
 import { applyToMapStyle } from "@/components/map/map-style-ready";
@@ -151,25 +151,27 @@ export default function MapaPage() {
   }, [map, cases]);
 
   return (
-    <div className="relative h-full w-full">
-      <MapView onMapReady={onMapReady} />
-      <DatasetMapLayers map={map} />
+    <MapPanelsProvider>
+      <div className="map-workspace relative h-full w-full">
+        <MapView onMapReady={onMapReady} />
+        <DatasetMapLayers map={map} />
 
-      <div className="absolute left-4 top-4 z-10">
-        <LayersPanel />
+        <MapPanel id="cases">
+          <LayersPanel />
+        </MapPanel>
+        <MapPanelsToggle />
+        <MapPanel id="search">
+          <div className="map-search-field">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar casos, coordenadas ou municípios"
+              placeholder="Buscar casos, coordenadas ou municípios..."
+              className="h-7 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+            />
+          </div>
+        </MapPanel>
       </div>
-
-      <div className="absolute right-4 top-4 z-10 w-72">
-        <div className="glass-panel flex items-center gap-2 rounded-lg px-3 py-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar casos, coordenadas ou municípios..."
-            className="h-7 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-          />
-        </div>
-      </div>
-    </div>
+    </MapPanelsProvider>
   );
 }

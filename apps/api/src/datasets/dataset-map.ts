@@ -231,7 +231,10 @@ export class DatasetMap {
     if (patch.publicFields !== undefined && !isDatasetReviewer(this.user))
       throw new ForbiddenException("Somente a verificação pode aprovar atributos públicos");
     const previous = this.config();
-    const merged = { ...previous, ...patch };
+    const supplied = Object.fromEntries(
+      Object.entries(patch).filter(([, value]) => value !== undefined),
+    ) as Partial<DatasetMapConfig>;
+    const merged = { ...previous, ...supplied };
     const fields = new Set((await this.schema()).map((f) => f.name).filter(safeMapField));
     const selected = [
       ...(merged.visibleFields ?? []),

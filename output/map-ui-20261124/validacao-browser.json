@@ -1,0 +1,2525 @@
+{
+  "passed": true,
+  "log": [
+    {
+      "name": "snapshot-preserved",
+      "data": {
+        "data": false,
+        "cases": true,
+        "search": false
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9292,
+          -15.7801
+        ],
+        "target": {
+          "x": 12,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 11.999999999617918,
+        "y": 468.00000000050943,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "case-border-0",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 274,
+          "top": 443.75,
+          "right": 634,
+          "bottom": 620.25,
+          "width": 360,
+          "height": 176.5
+        },
+        "close": {
+          "left": 583,
+          "top": 450.75,
+          "right": 627,
+          "bottom": 494.75,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 285,
+          "top": 444.75,
+          "right": 633,
+          "bottom": 557.75,
+          "width": 348,
+          "height": 113
+        },
+        "scrollable": false,
+        "bodyHeight": 62,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9292,
+          -15.7801
+        ],
+        "target": {
+          "x": 1176,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 1175.9999999991933,
+        "y": 468.00000000050943,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "case-border-1",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 1035,
+          "top": 443.75,
+          "right": 1395,
+          "bottom": 620.25,
+          "width": 360,
+          "height": 176.5
+        },
+        "close": {
+          "left": 1334,
+          "top": 450.75,
+          "right": 1378,
+          "bottom": 494.75,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 1036,
+          "top": 444.75,
+          "right": 1384,
+          "bottom": 557.75,
+          "width": 348,
+          "height": 113
+        },
+        "scrollable": false,
+        "bodyHeight": 62,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9292,
+          -15.7801
+        ],
+        "target": {
+          "x": 807.84,
+          "y": 12
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 807.8399999999252,
+        "y": 12.000000000806615,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "case-border-2",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 880,
+          "top": 132,
+          "right": 1240,
+          "bottom": 318.5,
+          "width": 360,
+          "height": 186.5
+        },
+        "close": {
+          "left": 1189,
+          "top": 149,
+          "right": 1233,
+          "bottom": 193,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 881,
+          "top": 143,
+          "right": 1239,
+          "bottom": 256,
+          "width": 358,
+          "height": 113
+        },
+        "scrollable": false,
+        "bodyHeight": 62,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9292,
+          -15.7801
+        ],
+        "target": {
+          "x": 712.8,
+          "y": 924
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 712.7999999995245,
+        "y": 924.0000000002972,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "case-border-3",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 785,
+          "top": 719.5,
+          "right": 1145,
+          "bottom": 906,
+          "width": 360,
+          "height": 186.5
+        },
+        "close": {
+          "left": 1094,
+          "top": 726.5,
+          "right": 1138,
+          "bottom": 770.5,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 786,
+          "top": 720.5,
+          "right": 1144,
+          "bottom": 833.5,
+          "width": 358,
+          "height": 113
+        },
+        "scrollable": false,
+        "bodyHeight": 62,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -48,
+          -16.2
+        ],
+        "target": {
+          "x": 12,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 11.999999999320744,
+        "y": 468.0000000007217,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "polygon-border-0",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 274,
+          "top": 164,
+          "right": 634,
+          "bottom": 900,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 583,
+          "top": 171,
+          "right": 627,
+          "bottom": 215,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 285,
+          "top": 165,
+          "right": 633,
+          "bottom": 277,
+          "width": 348,
+          "height": 112
+        },
+        "scrollable": true,
+        "bodyHeight": 622,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -48,
+          -16.2
+        ],
+        "target": {
+          "x": 1176,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 1176.0000000002972,
+        "y": 468.0000000007217,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "polygon-border-1",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 1035,
+          "top": 164,
+          "right": 1395,
+          "bottom": 900,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1334,
+          "top": 171,
+          "right": 1378,
+          "bottom": 215,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 1036,
+          "top": 165,
+          "right": 1384,
+          "bottom": 277,
+          "width": 348,
+          "height": 112
+        },
+        "scrollable": true,
+        "bodyHeight": 622,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -48,
+          -16.2
+        ],
+        "target": {
+          "x": 807.84,
+          "y": 12
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 807.8399999998828,
+        "y": 12.000000001061336,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "polygon-border-2",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 879,
+          "top": 132,
+          "right": 1239,
+          "bottom": 878,
+          "width": 360,
+          "height": 746
+        },
+        "close": {
+          "left": 1188,
+          "top": 149,
+          "right": 1232,
+          "bottom": 193,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 880,
+          "top": 143,
+          "right": 1238,
+          "bottom": 255,
+          "width": 358,
+          "height": 112
+        },
+        "scrollable": true,
+        "bodyHeight": 622,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -48,
+          -16.2
+        ],
+        "target": {
+          "x": 712.8,
+          "y": 924
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 712.7999999994821,
+        "y": 924.0000000005094,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "polygon-border-3",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 784,
+          "top": 160,
+          "right": 1144,
+          "bottom": 906,
+          "width": 360,
+          "height": 746
+        },
+        "close": {
+          "left": 1093,
+          "top": 167,
+          "right": 1137,
+          "bottom": 211,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 785,
+          "top": 161,
+          "right": 1143,
+          "bottom": 273,
+          "width": 358,
+          "height": 112
+        },
+        "scrollable": true,
+        "bodyHeight": 622,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 912,
+            "right": 437.5,
+            "bottom": 962,
+            "width": 173.5,
+            "height": 50
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 437.671875,
+            "bottom": 126,
+            "width": 173.671875,
+            "height": 50
+          },
+          {
+            "left": 770.546875,
+            "top": 76,
+            "right": 921.453125,
+            "bottom": 124,
+            "width": 150.90625,
+            "height": 48
+          },
+          {
+            "left": 1323.59375,
+            "top": 76,
+            "right": 1428,
+            "bottom": 126,
+            "width": 104.40625,
+            "height": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9,
+          -15.8
+        ],
+        "target": {
+          "x": 712.8,
+          "y": 421.2
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 712.8000000002887,
+        "y": 421.20000000051795,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "feature-long-open-panels",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 974,
+          "top": 186,
+          "right": 1334,
+          "bottom": 922,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1283,
+          "top": 193,
+          "right": 1327,
+          "bottom": 237,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 985,
+          "top": 187,
+          "right": 1333,
+          "bottom": 257,
+          "width": 348,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "feature-scrolled",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 974,
+          "top": 186,
+          "right": 1334,
+          "bottom": 922,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1283,
+          "top": 193,
+          "right": 1327,
+          "bottom": 237,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 985,
+          "top": 187,
+          "right": 1333,
+          "bottom": 257,
+          "width": 348,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9,
+          -15.8
+        ],
+        "target": {
+          "x": 12,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 12.000000000297174,
+        "y": 467.9999999998302,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "point-open-border-0",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 590,
+          "top": 181,
+          "right": 950,
+          "bottom": 917,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 899,
+          "top": 188,
+          "right": 943,
+          "bottom": 232,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 601,
+          "top": 182,
+          "right": 949,
+          "bottom": 252,
+          "width": 348,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9,
+          -15.8
+        ],
+        "target": {
+          "x": 1176,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 1175.9999999999152,
+        "y": 467.9999999998726,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "point-open-border-1",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 1035,
+          "top": 181,
+          "right": 1395,
+          "bottom": 917,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1334,
+          "top": 188,
+          "right": 1378,
+          "bottom": 232,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 1036,
+          "top": 182,
+          "right": 1384,
+          "bottom": 252,
+          "width": 348,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9,
+          -15.8
+        ],
+        "target": {
+          "x": 807.84,
+          "y": 12
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 807.8399999993734,
+        "y": 12.000000000084906,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "point-open-border-2",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 879,
+          "top": 181,
+          "right": 1239,
+          "bottom": 927,
+          "width": 360,
+          "height": 746
+        },
+        "close": {
+          "left": 1188,
+          "top": 198,
+          "right": 1232,
+          "bottom": 242,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 880,
+          "top": 192,
+          "right": 1238,
+          "bottom": 262,
+          "width": 358,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.9,
+          -15.8
+        ],
+        "target": {
+          "x": 712.8,
+          "y": 924
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 712.8000000002887,
+        "y": 924.000000000849,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "point-open-border-3",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 784,
+          "top": 214,
+          "right": 1144,
+          "bottom": 960,
+          "width": 360,
+          "height": 746
+        },
+        "close": {
+          "left": 1093,
+          "top": 221,
+          "right": 1137,
+          "bottom": 265,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 785,
+          "top": 215,
+          "right": 1143,
+          "bottom": 285,
+          "width": 358,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 12,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 11.999999999660373,
+        "y": 468.0000000007217,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "cluster-open-border-0",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 590,
+          "top": 181,
+          "right": 950,
+          "bottom": 917,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 855.09375,
+          "top": 188,
+          "right": 899.09375,
+          "bottom": 232,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 601,
+          "top": 182,
+          "right": 905.09375,
+          "bottom": 252,
+          "width": 304.09375,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 1176,
+          "y": 468
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 1175.9999999993208,
+        "y": 468.0000000007217,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "cluster-open-border-1",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 1035,
+          "top": 181,
+          "right": 1395,
+          "bottom": 917,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1334,
+          "top": 188,
+          "right": 1378,
+          "bottom": 232,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 1079.90625,
+          "top": 182,
+          "right": 1384,
+          "bottom": 252,
+          "width": 304.09375,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 807.84,
+          "y": 12
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 807.84000000018,
+        "y": 12.000000001018883,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "cluster-open-border-2",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 879,
+          "top": 181,
+          "right": 1239,
+          "bottom": 927,
+          "width": 360,
+          "height": 746
+        },
+        "close": {
+          "left": 1188,
+          "top": 198,
+          "right": 1232,
+          "bottom": 242,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 880,
+          "top": 192,
+          "right": 1238,
+          "bottom": 262,
+          "width": 358,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 712.8,
+          "y": 924
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 712.7999999997368,
+        "y": 924.0000000005094,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "cluster-open-border-3",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 784,
+          "top": 214,
+          "right": 1144,
+          "bottom": 960,
+          "width": 360,
+          "height": 746
+        },
+        "close": {
+          "left": 1093,
+          "top": 221,
+          "right": 1137,
+          "bottom": 265,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 785,
+          "top": 215,
+          "right": 1143,
+          "bottom": 285,
+          "width": 358,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 772.2,
+          "y": 421.2
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 772.2000000001783,
+        "y": 421.2000000000509,
+        "left": 252,
+        "top": 64,
+        "w": 1188,
+        "h": 936
+      }
+    },
+    {
+      "name": "cluster40",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 1440,
+          "bottom": 1000,
+          "width": 1188,
+          "height": 936
+        },
+        "popup": {
+          "left": 1034,
+          "top": 186,
+          "right": 1394,
+          "bottom": 922,
+          "width": 360,
+          "height": 736
+        },
+        "close": {
+          "left": 1299.09375,
+          "top": 193,
+          "right": 1343.09375,
+          "bottom": 237,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 1045,
+          "top": 187,
+          "right": 1349.09375,
+          "bottom": 257,
+          "width": 304.09375,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 664,
+        "sheet": false,
+        "obstacles": [
+          {
+            "left": 1401,
+            "top": 888,
+            "right": 1430,
+            "bottom": 946,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 1171.25,
+            "top": 966,
+            "right": 1430,
+            "bottom": 990,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 264,
+            "top": 722.375,
+            "right": 584,
+            "bottom": 962,
+            "width": 320,
+            "height": 239.625
+          },
+          {
+            "left": 264,
+            "top": 76,
+            "right": 584,
+            "bottom": 393.40625,
+            "width": 320,
+            "height": 317.40625
+          },
+          {
+            "left": 773.1171875,
+            "top": 76,
+            "right": 918.8828125,
+            "bottom": 124,
+            "width": 145.765625,
+            "height": 48
+          },
+          {
+            "left": 1128,
+            "top": 76,
+            "right": 1428,
+            "bottom": 175,
+            "width": 300,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "cluster-paging-association",
+      "data": true
+    },
+    {
+      "name": "mobile390x844",
+      "data": {
+        "map": {
+          "left": 76,
+          "top": 64,
+          "right": 390,
+          "bottom": 844,
+          "width": 314,
+          "height": 780
+        },
+        "popup": {
+          "left": 86,
+          "top": 387,
+          "right": 380,
+          "bottom": 517,
+          "width": 294,
+          "height": 130
+        },
+        "close": {
+          "left": 329,
+          "top": 394,
+          "right": 373,
+          "bottom": 438,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 87,
+          "top": 388,
+          "right": 379,
+          "bottom": 458,
+          "width": 292,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 58,
+        "sheet": true,
+        "obstacles": [
+          {
+            "left": 351,
+            "top": 732,
+            "right": 380,
+            "bottom": 790,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 121.25,
+            "top": 810,
+            "right": 380,
+            "bottom": 834,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 84,
+            "top": 523,
+            "right": 382,
+            "bottom": 720,
+            "width": 298,
+            "height": 197
+          },
+          {
+            "left": 84,
+            "top": 182,
+            "right": 382,
+            "bottom": 379,
+            "width": 298,
+            "height": 197
+          },
+          {
+            "left": 248,
+            "top": 72,
+            "right": 382,
+            "bottom": 120,
+            "width": 134,
+            "height": 48
+          },
+          {
+            "left": 84,
+            "top": 72,
+            "right": 244,
+            "bottom": 171,
+            "width": 160,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "panel-zoom-390x600",
+      "data": {
+        "panel": {
+          "left": 84,
+          "top": 388,
+          "right": 382,
+          "bottom": 476,
+          "width": 298,
+          "height": 88
+        },
+        "zoom": {
+          "left": 351,
+          "top": 488,
+          "right": 380,
+          "bottom": 546,
+          "width": 29,
+          "height": 58
+        }
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 219.79999999999998,
+          "y": 268
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 219.7999999986878,
+        "y": 267.9999999998888,
+        "left": 76,
+        "top": 64,
+        "w": 314,
+        "h": 536
+      }
+    },
+    {
+      "name": "resize-390x600",
+      "data": {
+        "map": {
+          "left": 76,
+          "top": 64,
+          "right": 390,
+          "bottom": 600,
+          "width": 314,
+          "height": 536
+        },
+        "popup": {
+          "left": 86,
+          "top": 278,
+          "right": 380,
+          "bottom": 382,
+          "width": 294,
+          "height": 104
+        },
+        "close": {
+          "left": 329,
+          "top": 285,
+          "right": 373,
+          "bottom": 329,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 87,
+          "top": 279,
+          "right": 379,
+          "bottom": 349,
+          "width": 292,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 32,
+        "sheet": true,
+        "obstacles": [
+          {
+            "left": 351,
+            "top": 488,
+            "right": 380,
+            "bottom": 546,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 121.25,
+            "top": 566,
+            "right": 380,
+            "bottom": 590,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 84,
+            "top": 388,
+            "right": 382,
+            "bottom": 476,
+            "width": 298,
+            "height": 88
+          },
+          {
+            "left": 84,
+            "top": 182,
+            "right": 382,
+            "bottom": 270,
+            "width": 298,
+            "height": 88
+          },
+          {
+            "left": 248,
+            "top": 72,
+            "right": 382,
+            "bottom": 120,
+            "width": 134,
+            "height": 48
+          },
+          {
+            "left": 84,
+            "top": 72,
+            "right": 244,
+            "bottom": 171,
+            "width": 160,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "panel-zoom-844x390",
+      "data": {
+        "panel": {
+          "left": 552,
+          "top": 182,
+          "right": 836,
+          "bottom": 254,
+          "width": 284,
+          "height": 72
+        },
+        "zoom": {
+          "left": 805,
+          "top": 278,
+          "right": 834,
+          "bottom": 336,
+          "width": 29,
+          "height": 58
+        }
+      }
+    },
+    {
+      "name": "click-start",
+      "data": {
+        "coordinate": [
+          -47.5,
+          -15.5
+        ],
+        "target": {
+          "x": 414.4,
+          "y": 163
+        }
+      }
+    },
+    {
+      "name": "click-projected",
+      "data": {
+        "x": 414.39999999995734,
+        "y": 162.9999999998781,
+        "left": 252,
+        "top": 64,
+        "w": 592,
+        "h": 326
+      }
+    },
+    {
+      "name": "resize-844x390",
+      "data": {
+        "map": {
+          "left": 252,
+          "top": 64,
+          "right": 844,
+          "bottom": 390,
+          "width": 592,
+          "height": 326
+        },
+        "popup": {
+          "left": 262.125,
+          "top": 262,
+          "right": 569.125,
+          "bottom": 380,
+          "width": 307,
+          "height": 118
+        },
+        "close": {
+          "left": 518.125,
+          "top": 269,
+          "right": 562.125,
+          "bottom": 313,
+          "width": 44,
+          "height": 44
+        },
+        "header": {
+          "left": 263.125,
+          "top": 263,
+          "right": 568.125,
+          "bottom": 333,
+          "width": 305,
+          "height": 70
+        },
+        "scrollable": true,
+        "bodyHeight": 46,
+        "sheet": true,
+        "obstacles": [
+          {
+            "left": 805,
+            "top": 278,
+            "right": 834,
+            "bottom": 336,
+            "width": 29,
+            "height": 58
+          },
+          {
+            "left": 575.25,
+            "top": 356,
+            "right": 834,
+            "bottom": 380,
+            "width": 258.75,
+            "height": 24
+          },
+          {
+            "left": 552,
+            "top": 182,
+            "right": 836,
+            "bottom": 254,
+            "width": 284,
+            "height": 72
+          },
+          {
+            "left": 260,
+            "top": 182,
+            "right": 544,
+            "bottom": 254,
+            "width": 284,
+            "height": 72
+          },
+          {
+            "left": 702,
+            "top": 72,
+            "right": 836,
+            "bottom": 120,
+            "width": 134,
+            "height": 48
+          },
+          {
+            "left": 260,
+            "top": 72,
+            "right": 698,
+            "bottom": 171,
+            "width": 438,
+            "height": 99
+          }
+        ]
+      }
+    },
+    {
+      "name": "keyboard-reduced-motion",
+      "data": true
+    }
+  ],
+  "fixture": "API local e dados sintéticos; fundo neutro de teste, sem banco e sem requisições ao provedor de tiles durante a bateria final.",
+  "interactions": "Cliques nativos quando o marcador estava descoberto; eventos MapLibre sobre feições renderizadas para estressar bordas cobertas por painéis, sem acionar botões por engano."
+}

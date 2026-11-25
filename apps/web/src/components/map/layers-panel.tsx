@@ -44,9 +44,8 @@ export function LayersPanel() {
   const deleteLayer = useDeleteLayer();
 
   return (
-    <div className="glass-panel flex max-h-[calc(100vh-7rem)] w-80 flex-col rounded-xl">
+    <div className="flex min-h-0 flex-col">
       <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
-        <span className="text-sm font-semibold">Camadas</span>
         <NewLayerDialog />
       </div>
 
@@ -58,7 +57,7 @@ export function LayersPanel() {
 
         {!isLoading && layers?.length === 0 && (
           <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-            Nenhuma camada cadastrada ainda.
+            Nenhuma camada de casos de grilagem cadastrada ainda.
           </p>
         )}
 
@@ -171,7 +170,9 @@ function NewLayerDialog() {
       setErrors({});
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Falha ao criar camada");
+      toast.error(
+        err instanceof Error ? err.message : "Falha ao criar camada de casos de grilagem",
+      );
     }
   }
 
@@ -181,13 +182,13 @@ function NewLayerDialog() {
         render={
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <Plus className="h-3.5 w-3.5" />
-            Nova
+            Nova camada de casos
           </Button>
         }
       />
       <SheetContent>
-        <SheetHeader eyebrow="Camadas · nova entrada">
-          <SheetTitle>Adicionar camada</SheetTitle>
+        <SheetHeader eyebrow="Camadas de casos de grilagem">
+          <SheetTitle>Adicionar camada de casos de grilagem</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <SheetBody className="space-y-4">

@@ -14,6 +14,7 @@ import { createDatasetPopupController } from "./dataset-popup";
 import { replaceMapPopup } from "./map-popup";
 import { applyToMapStyle } from "./map-style-ready";
 import { DatasetMapConfigSheet } from "./dataset-map-config";
+import { MapPanel } from "./map-panels";
 
 const SUFFIXES = ["fill", "line", "points", "clusters"];
 
@@ -179,11 +180,11 @@ export function DatasetMapLayers({ map }: { map: maplibregl.Map | null }) {
       const popup = replaceMapPopup(
         map,
         new maplibregl.Popup({ closeButton: true, maxWidth: "360px", offset: 10 }),
-      )
-        .setLngLat(event.lngLat)
-        .addTo(map);
-      popupRef.current = popup;
+      ).setLngLat(event.lngLat);
+      // MapLibre só cria o elemento do popup quando já existe conteúdo.
       const controller = createDatasetPopupController(popup, dataset.name);
+      popup.addTo(map);
+      popupRef.current = popup;
       if (properties.cluster === true) {
         controller.showCluster(
           dataset.datasetId,
@@ -258,111 +259,111 @@ export function DatasetMapLayers({ map }: { map: maplibregl.Map | null }) {
   const config = metadata.find((dataset) => dataset.datasetId === selectedConfig);
   return (
     <>
-      <section
-        aria-label="Camadas importadas"
-        className="glass-panel absolute bottom-4 left-4 z-10 max-h-[45vh] w-72 max-w-[calc(100%-5rem)] overflow-y-auto rounded-lg p-3 text-xs"
-      >
-        <h2 className="mb-2 font-semibold">Camadas importadas</h2>
-        {!active.length && (
-          <p className="text-muted-foreground">Nenhum dataset disponível neste acesso.</p>
-        )}
-        {active.map((dataset, index) => {
-          const query = metadataQueries[index];
-          const details = query?.data;
-          return (
-            <div
-              key={dataset.id}
-              className="mb-2 border-b border-border pb-2 last:mb-0 last:border-0 last:pb-0"
-            >
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  aria-label={`Exibir ${dataset.nome}`}
-                  checked={!hidden.has(dataset.id)}
-                  disabled={!details || query.isError}
-                  onChange={(event) =>
-                    setHidden((previous) => {
-                      const next = new Set(previous);
-                      if (event.target.checked) next.delete(dataset.id);
-                      else next.add(dataset.id);
-                      return next;
-                    })
-                  }
-                />
-                <span
-                  className="h-3 w-3 shrink-0 rounded-sm"
-                  style={{ backgroundColor: details?.config.color ?? datasetColor(dataset.id) }}
-                  aria-hidden
-                />
-                <span className="min-w-0 flex-1 break-words">{dataset.nome}</span>
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  title={`Enquadrar ${dataset.nome}`}
-                  disabled={!details?.bounds || query.isError}
-                  onClick={() => {
-                    if (details?.bounds)
-                      map?.fitBounds(
-                        [
-                          [details.bounds[0], details.bounds[1]],
-                          [details.bounds[2], details.bounds[3]],
-                        ],
-                        { padding: 80, maxZoom: 15 },
-                      );
-                  }}
-                >
-                  <LocateFixed className="h-3.5 w-3.5" />
-                </Button>
-                {details?.canConfigure && !query.isError && (
+      <MapPanel id="data">
+        <div className="p-3 text-xs">
+          {!active.length && (
+            <p className="text-muted-foreground">
+              Nenhuma camada de dados geográficos disponível neste acesso.
+            </p>
+          )}
+          {active.map((dataset, index) => {
+            const query = metadataQueries[index];
+            const details = query?.data;
+            return (
+              <div
+                key={dataset.id}
+                className="mb-2 border-b border-border pb-2 last:mb-0 last:border-0 last:pb-0"
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    aria-label={`Exibir ${dataset.nome}`}
+                    checked={!hidden.has(dataset.id)}
+                    disabled={!details || query.isError}
+                    onChange={(event) =>
+                      setHidden((previous) => {
+                        const next = new Set(previous);
+                        if (event.target.checked) next.delete(dataset.id);
+                        else next.add(dataset.id);
+                        return next;
+                      })
+                    }
+                  />
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-sm"
+                    style={{ backgroundColor: details?.config.color ?? datasetColor(dataset.id) }}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 break-words">{dataset.nome}</span>
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    title={`Configurar ${dataset.nome}`}
-                    onClick={() => setSelectedConfig(dataset.id)}
+                    title={`Enquadrar ${dataset.nome}`}
+                    disabled={!details?.bounds || query.isError}
+                    onClick={() => {
+                      if (details?.bounds)
+                        map?.fitBounds(
+                          [
+                            [details.bounds[0], details.bounds[1]],
+                            [details.bounds[2], details.bounds[3]],
+                          ],
+                          { padding: 80, maxZoom: 15 },
+                        );
+                    }}
                   >
-                    <Settings2 className="h-3.5 w-3.5" />
+                    <LocateFixed className="h-3.5 w-3.5" />
                   </Button>
+                  {details?.canConfigure && !query.isError && (
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      title={`Configurar ${dataset.nome}`}
+                      onClick={() => setSelectedConfig(dataset.id)}
+                    >
+                      <Settings2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {dataset.registros.toLocaleString("pt-BR")} feições · {dataset.tipoGeometria} ·{" "}
+                  {dataset.visibility === "restrito" ? "Restrito" : "Público"}
+                </p>
+                {query?.isPending && <p role="status">Carregando camada…</p>}
+                {query?.isError && (
+                  <button
+                    type="button"
+                    className="text-destructive underline"
+                    onClick={() => void query.refetch()}
+                  >
+                    Falha ao carregar. Tentar novamente.
+                  </button>
                 )}
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {dataset.registros.toLocaleString("pt-BR")} feições · {dataset.tipoGeometria} ·{" "}
-                {dataset.visibility === "restrito" ? "Restrito" : "Público"}
-              </p>
-              {query?.isPending && <p role="status">Carregando camada…</p>}
-              {query?.isError && (
-                <button
-                  type="button"
-                  className="text-destructive underline"
-                  onClick={() => void query.refetch()}
-                >
-                  Falha ao carregar. Tentar novamente.
-                </button>
-              )}
-            </div>
-          );
-        })}
-        {active.some((dataset) => dataset.tipoGeometria === "Point") && (
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            Pontos próximos são agrupados; clique no agrupamento para listar e abrir cada feição.
-          </p>
-        )}
-        {tileError && (
-          <p role="alert" className="mt-2 text-destructive">
-            {tileError}{" "}
-            <button
-              type="button"
-              className="underline"
-              onClick={() => {
-                setTileError(null);
-                setReloadNonce((value) => value + 1);
-                void queryClient.invalidateQueries({ queryKey: ["dataset-map-metadata"] });
-              }}
-            >
-              Tentar novamente
-            </button>
-          </p>
-        )}
-      </section>
+            );
+          })}
+          {active.some((dataset) => dataset.tipoGeometria === "Point") && (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Pontos próximos são agrupados; clique no agrupamento para listar e abrir cada feição.
+            </p>
+          )}
+          {tileError && (
+            <p role="alert" className="mt-2 text-destructive">
+              {tileError}{" "}
+              <button
+                type="button"
+                className="underline"
+                onClick={() => {
+                  setTileError(null);
+                  setReloadNonce((value) => value + 1);
+                  void queryClient.invalidateQueries({ queryKey: ["dataset-map-metadata"] });
+                }}
+              >
+                Tentar novamente
+              </button>
+            </p>
+          )}
+        </div>
+      </MapPanel>
       {config?.canConfigure && (
         <DatasetMapConfigSheet
           key={`${sessionKey}:${config.datasetId}`}

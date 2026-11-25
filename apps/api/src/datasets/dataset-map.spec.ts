@@ -101,7 +101,13 @@ describe("configuração e associação de feição", () => {
       { ...ds, mapConfig: { publicFields: ["nome"] } },
       owner,
     );
-    const result = await map.configure({ color: "#123456" });
+    // DTOs transformados pelo Nest podem manter as propriedades opcionais como
+    // chaves próprias com valor undefined; elas não devem apagar a configuração atual.
+    const result = await map.configure({
+      color: "#123456",
+      publicFields: undefined,
+      visibleFields: undefined,
+    });
     const [query, serializedPatch, id] = prisma.$queryRaw.mock.calls[1] as [
       TemplateStringsArray,
       string,
